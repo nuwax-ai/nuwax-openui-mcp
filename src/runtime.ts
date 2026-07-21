@@ -11,3 +11,5 @@ export function createRuntime(config: AppConfig) {
 
   return { store, renderService };
 }
+
+export type OpenUiRuntime = ReturnType<typeof createRuntime>;

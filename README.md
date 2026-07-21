@@ -78,9 +78,32 @@ Example MCP client configuration:
 }
 ```
 
-stdio can create artifacts, but a sidecar page also requires the HTTP process
-to serve the artifact. For sidecar deployments, use Streamable HTTP or replace
-the in-memory store with shared durable storage.
+The stdio process starts the sidecar HTTP server by default and both transports
+share the same in-memory artifact store. Set
+`NUWAX_OPENUI_SIDECAR_SERVER_ENABLED=false` only when inline rendering is the
+sole requirement or another process owns the sidecar service.
+
+For NuwaClaw, configure this server as persistent so all Agent sessions share
+one process and one sidecar port:
+
+```json
+{
+  "mcpServers": {
+    "nuwax-openui": {
+      "command": "npx",
+      "args": ["-y", "@nuwax-ai/openui-mcp@0.1.1"],
+      "env": {
+        "NUWAX_OPENUI_HOST": "127.0.0.1",
+        "NUWAX_OPENUI_PORT": "8787",
+        "NUWAX_OPENUI_BASE_URL": "http://127.0.0.1:8787",
+        "NUWAX_OPENUI_ALLOWED_HOSTS": "127.0.0.1,localhost"
+      },
+      "enabled": true,
+      "persistent": true
+    }
+  }
+}
+```
 
 ## Run over Streamable HTTP
 
