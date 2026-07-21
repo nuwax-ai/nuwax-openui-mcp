@@ -1,5 +1,5 @@
 {
-  "name": "nuwax-openui-mcp",
+  "name": "@nuwax-ai/openui-mcp",
   "version": "0.1.0",
   "description": "OpenUI over MCP for Nuwax, with inline and sidecar rendering contracts.",
   "type": "module",
@@ -11,6 +11,18 @@
   "homepage": "https://github.com/nuwax-ai/nuwax-openui-mcp#readme",
   "bugs": {
     "url": "https://github.com/nuwax-ai/nuwax-openui-mcp/issues"
+  },
+  "main": "./dist/server/index.js",
+  "types": "./dist/server/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/server/index.d.ts",
+      "import": "./dist/server/index.js"
+    },
+    "./contracts": {
+      "types": "./dist/server/contracts.d.ts",
+      "import": "./dist/server/contracts.js"
+    }
   },
   "bin": {
     "nuwax-openui-mcp": "dist/server/stdio.js",
@@ -34,7 +46,12 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc -p tsconfig.server.json --noEmit && tsc -p tsconfig.web.json --noEmit",
-    "verify": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build"
+    "verify": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build",
+    "prepublishOnly": "pnpm verify"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.29.0",

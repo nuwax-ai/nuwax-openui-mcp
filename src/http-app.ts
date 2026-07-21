@@ -3,7 +3,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
-import express, { type Request, type Response } from 'express';
+import express, { type Express, type Request, type Response } from 'express';
 
 import type { ArtifactStore } from './artifact-store.js';
 import type { AppConfig } from './config.js';
@@ -33,7 +33,7 @@ function addSecurityHeaders(
   );
 }
 
-export function createHttpApp(dependencies: HttpAppDependencies) {
+export function createHttpApp(dependencies: HttpAppDependencies): Express {
   const { config, renderService, store } = dependencies;
   const app = express();
   app.disable('x-powered-by');

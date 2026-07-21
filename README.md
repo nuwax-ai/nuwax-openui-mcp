@@ -49,6 +49,12 @@ pnpm install
 pnpm verify
 ```
 
+Install the published package in a host project:
+
+```bash
+npm install @nuwax-ai/openui-mcp
+```
+
 ## Run over stdio
 
 ```bash
