@@ -1,10 +1,11 @@
 # Nuwax OpenUI MCP
 
 OpenUI over MCP for Nuwax Agent sessions. One MCP tool publishes a validated,
-versioned OpenUI artifact that a host can render in either of two places:
+versioned OpenUI artifact that a host can present in either of two places:
 
-- **inline** — native OpenUI React UI directly under the existing tool bar;
-- **sidecar** — a trusted page URL opened in the existing preview iframe.
+- **inline** — rendered directly by the host Renderer by default, with an
+  optional OpenUI Runtime iframe mode;
+- **sidecar** — the same Runtime page opened in the preview area or a full page.
 
 The project intentionally does not replace the host's chat transport, session
 model, permission system, or tool status UI.
@@ -16,8 +17,12 @@ This repository contains the first executable foundation:
 - `nuwax_render_openui` MCP tool;
 - `nuwax.openui/v1` input and structured-result contract;
 - stdio and Streamable HTTP transports;
-- inline artifacts and sidecar page artifacts;
-- an OpenUI React sidecar renderer;
+- direct Renderer and page Runtime options for inline artifacts;
+- one OpenUI React page Runtime shared by iframe-inline and sidecar artifacts;
+- relative-path and desktop-query transports for proxied Runtime pages;
+- `OPENUI_READY` / `OPENUI_RESIZE` page messages for iframe auto-sizing;
+- localized required validation, including date and date-range values;
+- isolated Runtime styles, independent from the Nuwax host reset stylesheet;
 - source policy, artifact TTL, Host validation, CSP, and tests.
 
 The default artifact store is in-memory. Production deployments should provide
@@ -29,9 +34,20 @@ a durable, tenant-aware `ArtifactStore` and authentication at the edge.
 Agent
   └─ MCP call: nuwax_render_openui
        └─ validate + persist artifact
-            ├─ inline   → structuredContent → host OpenUI Renderer
-            └─ sidecar  → signed/trusted page URL → preview iframe
+            ├─ structuredContent → host discovers the artifact
+            ├─ inline → host Renderer (default)
+            └─ shared Runtime page
+                 ├─ inline iframe (optional)
+                 └─ sidecar preview / full page
 ```
+
+`presentation.mode` controls where the host presents the Artifact; it does not
+force an inline rendering technology. PC hosts should default inline Artifacts
+to the direct Renderer and may explicitly select the iframe Runtime for stronger
+style isolation or cross-client page reuse. `GET /openui/pages/:id` is available
+for both inline and sidecar artifacts. For backward compatibility, only sidecar
+structured results currently contain `artifact.page.url`; an iframe-inline host
+builds its trusted page URL from its configured proxy route and `artifactId`.
 
 OpenUI runtime queries and mutations are intentionally not proxied in the first
 release. They must be added behind a host-controlled MCP proxy with tenant,
@@ -80,8 +96,8 @@ Example MCP client configuration:
 
 The stdio process starts the sidecar HTTP server by default and both transports
 share the same in-memory artifact store. Set
-`NUWAX_OPENUI_SIDECAR_SERVER_ENABLED=false` only when inline rendering is the
-sole requirement or another process owns the sidecar service.
+`NUWAX_OPENUI_SIDECAR_SERVER_ENABLED=false` only when another process owns the
+page Runtime service. Page-based inline rendering also needs this service.
 
 For NuwaClaw, configure this server as persistent so all Agent sessions share
 one process and one sidecar port:
@@ -91,7 +107,7 @@ one process and one sidecar port:
   "mcpServers": {
     "nuwax-openui": {
       "command": "npx",
-      "args": ["-y", "@nuwax-ai/openui-mcp@0.1.4"],
+      "args": ["-y", "@nuwax-ai/openui-mcp@0.1.10"],
       "env": {
         "NUWAX_OPENUI_HOST": "127.0.0.1",
         "NUWAX_OPENUI_PORT": "8787",
@@ -124,7 +140,33 @@ Endpoints:
 | `POST /mcp`                 | MCP Streamable HTTP                |
 | `GET /healthz`              | Health check                       |
 | `GET /openui/artifacts/:id` | Artifact document for the renderer |
-| `GET /openui/pages/:id`     | Sidecar page                       |
+| `GET /openui/pages/:id`     | Shared inline/sidecar Runtime page |
+| `GET /openui/assets/*`      | Runtime JavaScript and CSS         |
+
+### Proxied page transports
+
+The default page uses relative path assets and Artifact lookup:
+
+```text
+GET /openui/pages/{artifactId}
+  ├─ ../assets/sidecar.css
+  ├─ ../assets/sidecar.js
+  └─ ../artifacts/{artifactId}
+```
+
+For the Nuwax PC desktop/file proxy, request the page with
+`?transport=desktop-query`. The generated page keeps all subsequent requests on
+the same conversation-scoped URL and changes only the query:
+
+```text
+?openui=css
+?openui=js
+?openui=artifact&artifactId={artifactId}
+```
+
+The query transport is a page transport convention, not a general-purpose
+proxy. The Nuwax host must derive the conversation and target service from its
+authenticated context and must not accept an arbitrary upstream URL.
 
 ## Tool contract
 
@@ -196,21 +238,79 @@ runtime behavior.
 
 ## Host integration
 
-For inline mode, mount the OpenUI renderer inside the existing tool block:
+PC Web inline supports two rendering strategies. The direct Renderer is the
+default because it has no local Runtime/network dependency and integrates with
+the existing conversation lifecycle:
+
+```tsx
+<Renderer
+  library={openuiLibrary}
+  response={artifact.document.source}
+  isStreaming={false}
+/>
+```
+
+The host may explicitly select iframe mode for isolation or page-runtime
+testing:
 
 ```tsx
 <ToolProcessShell header={existingToolBar}>
-  <Renderer
-    library={nuwaxOpenUiLibrary}
-    response={artifact.document.source}
-    isStreaming={status === 'receiving'}
+  <iframe
+    src={resolveTrustedOpenUiPageUrl(artifact.artifactId)}
+    sandbox="allow-scripts"
+    title={artifact.title}
   />
 </ToolProcessShell>
 ```
 
-For sidecar mode, use `artifact.page.url` only after the host validates its
-origin and artifact context. Use a dedicated restrictive iframe sandbox; do not
-reuse a broad legacy sandbox profile.
+For sidecar mode, `artifact.page.url` can be used only after the host validates
+its origin and artifact context. Use a dedicated restrictive iframe sandbox;
+do not reuse a broad legacy sandbox profile.
+
+### Page bridge and automatic height
+
+After an Artifact is loaded, the Runtime sends these messages to its parent:
+
+```ts
+type OpenUiRuntimeMessage =
+  | {
+      type: 'OPENUI_READY';
+      protocolVersion: 'nuwax.openui-page/v1';
+      artifactId: string;
+    }
+  | {
+      type: 'OPENUI_RESIZE';
+      protocolVersion: 'nuwax.openui-page/v1';
+      artifactId: string;
+      height: number;
+    };
+```
+
+The current Runtime uses `ResizeObserver` on its rendered root, so form
+validation messages, date selection, expanding content, and responsive wrapping
+can update the iframe height. The host must validate `event.source`, the trusted
+Runtime origin, `protocolVersion`, and `artifactId` before applying the height.
+It should also clamp the height and provide an expand/scroll fallback for large
+documents.
+
+The v1 bridge currently reports readiness and size only. Host context, actions,
+nonce/sequence replay protection, and native/mobile WebView bridges are planned
+extensions and must not be assumed by clients yet.
+
+### Runtime styles, validation, and locale
+
+The page Runtime imports the official `@openuidev/react-ui` stylesheet inside
+its own document. This prevents host rules such as `button { color: inherit }`
+from overriding iframe-rendered OpenUI button colors. A direct Renderer shares
+the host document and must load the official layered stylesheet plus scoped,
+unlayered compatibility overrides for host reset rules.
+
+The page Runtime replaces the built-in `required` validator to correctly accept
+`Date`, date-range objects, wrapped values, and selected checkbox maps. Required
+messages follow `navigator.language` for English, Simplified Chinese,
+Traditional Chinese, and Japanese. Unknown locales fall back to English. A host
+using the direct Renderer must install the equivalent validator integration in
+its own JavaScript context; Nuwax PC Web does this through its i18n runtime.
 
 ## Security model
 

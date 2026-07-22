@@ -87,7 +87,9 @@ export function createHttpApp(dependencies: HttpAppDependencies): Express {
 
   app.get('/openui/pages/:artifactId', async (request, response) => {
     const artifact = await store.get(request.params.artifactId);
-    if (!artifact || artifact.presentation.mode !== 'sidecar') {
+    // The page runtime is shared by inline and sidecar hosts. Presentation
+    // controls how the host displays it, not whether a page can be rendered.
+    if (!artifact) {
       response.status(404).send('Artifact not found or expired.');
       return;
     }
@@ -95,7 +97,15 @@ export function createHttpApp(dependencies: HttpAppDependencies): Express {
     response.setHeader('Cache-Control', 'private, no-store');
     response
       .type('html')
-      .send(createSidecarPageHtml(artifact.artifactId, artifact.title));
+      .send(
+        createSidecarPageHtml(
+          artifact.artifactId,
+          artifact.title,
+          request.query.transport === 'desktop-query'
+            ? 'desktop-query'
+            : 'path',
+        ),
+      );
   });
 
   const moduleDirectory = dirname(fileURLToPath(import.meta.url));

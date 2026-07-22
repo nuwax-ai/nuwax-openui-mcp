@@ -11,6 +11,7 @@ import {
   openUiArtifactSchema,
   renderOpenUiInputSchema,
 } from './contracts.js';
+import { OPENUI_MCP_VERSION } from './version.js';
 import { getOpenUiDslSchema, getOpenUiReference } from './openui-reference.js';
 import { OpenUiPolicyError } from './policy.js';
 import type { RenderOpenUiService } from './render-service.js';
@@ -20,7 +21,7 @@ export function createOpenUiMcpServer(
 ): McpServer {
   const server = new McpServer({
     name: 'nuwax-openui-mcp',
-    version: '0.1.4',
+    version: OPENUI_MCP_VERSION,
   });
 
   server.registerResource(

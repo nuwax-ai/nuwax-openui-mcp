@@ -136,6 +136,11 @@ describe('Streamable HTTP MCP', () => {
       schemaVersion: 'nuwax.openui/v1',
       presentation: { mode: 'inline' },
     });
+    const inlineArtifact = result.structuredContent as { artifactId: string };
+    const inlinePageResponse = await fetch(
+      `http://127.0.0.1:${port}/openui/pages/${inlineArtifact.artifactId}`,
+    );
+    expect(inlinePageResponse.status).toBe(200);
 
     const invalidResult = await client.callTool({
       name: OPENUI_TOOL_NAME,
@@ -175,6 +180,16 @@ describe('Streamable HTTP MCP', () => {
     expect(pageResponse.headers.get('content-security-policy')).toContain(
       "frame-ancestors 'self' https://nuwax.example.com",
     );
-    expect(await pageResponse.text()).toContain('data-artifact-id');
+    const pageHtml = await pageResponse.text();
+    expect(pageHtml).toContain('data-artifact-id');
+    expect(pageHtml).toContain('href="../assets/sidecar.css?v=0.1.10"');
+    expect(pageHtml).toContain('src="../assets/sidecar.js?v=0.1.10"');
+
+    const desktopQueryPageResponse = await fetch(
+      `http://127.0.0.1:${port}/openui/pages/${sidecarArtifact.artifactId}?transport=desktop-query`,
+    );
+    const desktopQueryPageHtml = await desktopQueryPageResponse.text();
+    expect(desktopQueryPageHtml).toContain('href="?openui=css&v=0.1.10"');
+    expect(desktopQueryPageHtml).toContain('src="?openui=js&v=0.1.10"');
   });
 });

@@ -1,8 +1,13 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 
+import '@openuidev/react-ui/index.css';
+
 import { SidecarApp } from './SidecarApp';
+import { configureOpenUiValidation } from './openUiValidation';
 import './sidecar.css';
+
+configureOpenUiValidation();
 
 const rootElement = document.getElementById('root');
 const artifactId = rootElement?.dataset.artifactId;

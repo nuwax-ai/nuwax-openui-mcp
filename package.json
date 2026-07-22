@@ -1,6 +1,6 @@
 {
   "name": "@nuwax-ai/openui-mcp",
-  "version": "0.1.4",
+  "version": "0.1.10",
   "description": "OpenUI over MCP for Nuwax, with inline and sidecar rendering contracts.",
   "type": "module",
   "license": "Apache-2.0",
@@ -32,6 +32,7 @@
   "files": [
     "dist",
     "README.md",
+    "CHANGELOG.md",
     "LICENSE"
   ],
   "scripts": {
