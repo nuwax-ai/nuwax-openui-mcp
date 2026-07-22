@@ -1,13 +1,12 @@
-import { InMemoryArtifactStore } from './artifact-store.js';
-import type { AppConfig } from './config.js';
+import {
+  FileArtifactStore,
+  type ProjectRootResolver,
+} from './artifact-store.js';
 import { RenderOpenUiService } from './render-service.js';
 
-export function createRuntime(config: AppConfig) {
-  const store = new InMemoryArtifactStore();
-  const renderService = new RenderOpenUiService(store, {
-    baseUrl: config.baseUrl,
-    artifactTtlSeconds: config.artifactTtlSeconds,
-  });
+export function createRuntime(resolveProjectRoot: ProjectRootResolver) {
+  const store = new FileArtifactStore(resolveProjectRoot);
+  const renderService = new RenderOpenUiService(store);
 
   return { store, renderService };
 }

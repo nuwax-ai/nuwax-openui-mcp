@@ -12,12 +12,12 @@ export default defineConfig({
     lib: {
       entry: 'web/main.tsx',
       formats: ['es'],
-      fileName: () => 'sidecar.js',
+      fileName: () => 'runtime.js',
     },
     outDir: 'dist/web',
     rollupOptions: {
       output: {
-        assetFileNames: 'sidecar.[ext]',
+        assetFileNames: 'runtime.[ext]',
       },
     },
   },

@@ -1,6 +1,8 @@
 import { z } from 'zod';
 
 export const OPENUI_SCHEMA_VERSION = 'nuwax.openui/v1' as const;
+export const OPENUI_FILE_SCHEMA_VERSION = 'nuwax.openui-file/v1' as const;
+export const OPENUI_REF_SCHEMA_VERSION = 'nuwax.openui-ref/v1' as const;
 export const OPENUI_LANG_VERSION = '0.5' as const;
 export const OPENUI_TOOL_NAME = 'nuwax_render_openui' as const;
 export const OPENUI_REFERENCE_TOOL_NAME = 'nuwax_get_openui_reference' as const;
@@ -31,6 +33,13 @@ const bindingSchema = z.object({
 });
 
 export const renderOpenUiInputSchema = z.object({
+  artifactId: z
+    .string()
+    .uuid()
+    .optional()
+    .describe(
+      'Optional stable artifact UUID. Reusing an existing ID atomically replaces data/{artifactId}.openui.json.',
+    ),
   schemaVersion: z
     .literal(OPENUI_SCHEMA_VERSION)
     .describe('Always use nuwax.openui/v1.'),
@@ -105,7 +114,46 @@ export const openUiArtifactSchema = z.object({
   expiresAt: z.string().datetime(),
 });
 
+export const openUiFileSchema = z.object({
+  type: z.literal('nuwax.openui-file'),
+  schemaVersion: z.literal(OPENUI_FILE_SCHEMA_VERSION),
+  artifactId: z.string().uuid(),
+  title: z.string(),
+  presentation: z.object({
+    mode: z.enum(['inline', 'sidecar']),
+    autoOpen: z.boolean(),
+    preferredWidth: z.enum(['compact', 'normal', 'wide']).optional(),
+  }),
+  document: z.object({
+    language: z.literal('openui-lang'),
+    specVersion: z.literal(OPENUI_LANG_VERSION),
+    source: z.string(),
+    digest: z.string().regex(/^sha256:[a-f0-9]{64}$/),
+  }),
+  bindings: z.object({
+    tools: z.array(bindingSchema),
+  }),
+  fallback: z.object({
+    markdown: z.string(),
+  }),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+});
+
+export const openUiArtifactRefSchema = z.object({
+  type: z.literal('nuwax.openui-ref'),
+  schemaVersion: z.literal(OPENUI_REF_SCHEMA_VERSION),
+  artifactId: z.string().uuid(),
+  path: z.string().regex(/^data\/[0-9a-f-]{36}\.openui\.json$/),
+  title: z.string(),
+  presentation: openUiFileSchema.shape.presentation,
+  digest: z.string().regex(/^sha256:[a-f0-9]{64}$/),
+  operation: z.enum(['created', 'updated']),
+});
+
 export type RenderOpenUiInput = z.infer<typeof renderOpenUiInputSchema>;
 export type OpenUiReferenceInput = z.infer<typeof openUiReferenceInputSchema>;
 export type OpenUiArtifact = z.infer<typeof openUiArtifactSchema>;
+export type OpenUiFile = z.infer<typeof openUiFileSchema>;
+export type OpenUiArtifactRef = z.infer<typeof openUiArtifactRefSchema>;
 export type OpenUiBinding = z.infer<typeof bindingSchema>;

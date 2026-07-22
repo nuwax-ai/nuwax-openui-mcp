@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.0
+
+- Persist OpenUI artifacts as `data/{artifactId}.openui.json`.
+- Support atomic updates by reusing `artifactId`.
+- Return lightweight `nuwax.openui-ref/v1` results.
+- Replace the localhost page server with a frozen postMessage Runtime bundle.
+- Remove Artifact TTL, sidecar page URLs, and HTTP server configuration.
+
 ## 0.1.12
 
 - Treat sidecar `structuredContent.page.url` as an internal local Runtime

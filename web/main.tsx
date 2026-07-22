@@ -3,21 +3,19 @@ import { createRoot } from 'react-dom/client';
 
 import '@openuidev/react-ui/index.css';
 
-import { SidecarApp } from './SidecarApp';
+import { RuntimeApp } from './RuntimeApp';
 import { configureOpenUiValidation } from './openUiValidation';
 import './sidecar.css';
 
 configureOpenUiValidation();
 
 const rootElement = document.getElementById('root');
-const artifactId = rootElement?.dataset.artifactId;
-
-if (!rootElement || !artifactId) {
-  throw new Error('Missing sidecar root or artifact id.');
+if (!rootElement) {
+  throw new Error('Missing OpenUI runtime root.');
 }
 
 createRoot(rootElement).render(
   <React.StrictMode>
-    <SidecarApp artifactId={artifactId} />
+    <RuntimeApp />
   </React.StrictMode>,
 );

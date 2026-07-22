@@ -28,11 +28,28 @@ body {
   min-width: 320px;
 }
 
-.openui-sidecar {
+.openui-runtime {
   width: min(1440px, 100%);
-  min-height: 100vh;
   margin: 0 auto;
   padding: 24px;
+}
+
+.openui-action-error {
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border: 1px solid #fecdca;
+  border-radius: 8px;
+  color: #b42318;
+  background: #fef3f2;
+}
+
+button.openui-button-base-primary,
+.openui-button-base-primary {
+  color: #fff;
+}
+
+html[data-viewport='mobile'] .openui-runtime {
+  padding: 12px;
 }
 
 .openui-state {

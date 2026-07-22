@@ -4,4 +4,5 @@ export * from './version.js';
 export * from './mcp-server.js';
 export * from './openui-validator.js';
 export * from './policy.js';
+export * from './project-root.js';
 export * from './render-service.js';

@@ -1,39 +1,58 @@
-import { describe, expect, it } from 'vitest';
+import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
+import { afterEach, describe, expect, it } from 'vitest';
 
-import { InMemoryArtifactStore } from './artifact-store.js';
+import { FileArtifactStore } from './artifact-store.js';
+import { openUiFileSchema } from './contracts.js';
 import { RenderOpenUiService } from './render-service.js';
 import { validInlineInput } from './test/fixtures.js';
 
-function createService() {
-  const store = new InMemoryArtifactStore();
-  const service = new RenderOpenUiService(store, {
-    baseUrl: 'https://openui.example.com',
-    artifactTtlSeconds: 3_600,
-  });
-  return { service, store };
+const directories: string[] = [];
+
+async function createService() {
+  const projectRoot = await mkdtemp(path.join(os.tmpdir(), 'nuwax-openui-'));
+  directories.push(projectRoot);
+  const store = new FileArtifactStore(async () => projectRoot);
+  await store.initialize();
+  return { service: new RenderOpenUiService(store), store, projectRoot };
 }
 
-describe('RenderOpenUiService', () => {
-  it('creates an inline artifact without a page URL', async () => {
-    const { service, store } = createService();
-    const artifact = await service.render(validInlineInput);
+afterEach(async () => {
+  await Promise.all(
+    directories.splice(0).map((dir) => rm(dir, { recursive: true })),
+  );
+});
 
-    expect(artifact.presentation.mode).toBe('inline');
-    expect(artifact.page).toBeUndefined();
-    expect(artifact.document.digest).toMatch(/^sha256:/);
-    expect(await store.get(artifact.artifactId)).toEqual(artifact);
+describe('RenderOpenUiService', () => {
+  it('creates a durable artifact file and returns a lightweight reference', async () => {
+    const { service, store, projectRoot } = await createService();
+    const reference = await service.render(validInlineInput);
+    const stored = await store.get(reference.artifactId);
+    const raw = await readFile(path.join(projectRoot, reference.path), 'utf8');
+
+    expect(reference).toMatchObject({
+      type: 'nuwax.openui-ref',
+      operation: 'created',
+      presentation: { mode: 'inline' },
+    });
+    expect(openUiFileSchema.parse(JSON.parse(raw))).toEqual(stored);
+    expect(stored?.document.digest).toBe(reference.digest);
   });
 
-  it('creates a trusted sidecar page URL', async () => {
-    const { service } = createService();
-    const artifact = await service.render({
+  it('atomically overwrites an artifact when artifactId is reused', async () => {
+    const { service, store } = await createService();
+    const created = await service.render(validInlineInput);
+    const before = await store.get(created.artifactId);
+    const updated = await service.render({
       ...validInlineInput,
-      presentation: { mode: 'sidecar', autoOpen: true },
+      artifactId: created.artifactId,
+      title: 'Updated deployment summary',
     });
+    const after = await store.get(created.artifactId);
 
-    expect(artifact.page?.url).toBe(
-      `https://openui.example.com/openui/pages/${artifact.artifactId}`,
-    );
-    expect(artifact.page?.sandboxProfile).toBe('openui-sidecar-v1');
+    expect(updated.operation).toBe('updated');
+    expect(after?.title).toBe('Updated deployment summary');
+    expect(after?.createdAt).toBe(before?.createdAt);
   });
 });
