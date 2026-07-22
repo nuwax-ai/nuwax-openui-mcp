@@ -118,7 +118,7 @@ export function createOpenUiMcpServer(
     {
       title: 'Render Nuwax OpenUI',
       description:
-        'Create and publish visual UI in a Nuwax Agent conversation. Use this whenever the user asks to show, render, visualize, preview, or build a card, dashboard, chart, table, report, form, status panel, or other structured interface—even if they do not mention OpenUI. Do not use it for prose-only or code-only answers. OpenUI Lang is assignment-based and is NEVER XML/HTML/JSX: start with root = Stack(...), use positional arguments, and reference every defined variable. A minimal valid source is root = Stack([title]) followed by title = TextContent("Ready", "large-heavy"). For complex UI or uncertain component signatures, call nuwax_get_openui_reference first; never guess or search local package files. Reactive filters must handle empty initial bindings, and dynamic pie/radial charts must guard zero totals. Use inline for compact conversation UI and sidecar only for a full page.',
+        'Create and publish visual UI in a Nuwax Agent conversation. Use this whenever the user asks to show, render, visualize, preview, or build a card, dashboard, chart, table, report, form, status panel, or other structured interface—even if they do not mention OpenUI. Do not use it for prose-only or code-only answers. OpenUI Lang is assignment-based and is NEVER XML/HTML/JSX: start with root = Stack(...), use positional arguments, and reference every defined variable. A minimal valid source is root = Stack([title]) followed by title = TextContent("Ready", "large-heavy"). For complex UI or uncertain component signatures, call nuwax_get_openui_reference first; never guess or search local package files. Reactive filters must handle empty initial bindings, and dynamic pie/radial charts must guard zero totals. Use inline for compact conversation UI and sidecar only for a full page. For sidecar results, page.url is an internal local Runtime locator for the Nuwax Host and MUST NOT be shown or recommended to the user; the Host resolves the user-facing proxied page URL.',
       inputSchema: renderOpenUiInputSchema,
       outputSchema: openUiArtifactSchema,
       annotations: {
@@ -138,7 +138,7 @@ export function createOpenUiMcpServer(
               text:
                 artifact.presentation.mode === 'inline'
                   ? `OpenUI inline artifact ready: ${artifact.artifactId}`
-                  : `OpenUI sidecar artifact ready: ${artifact.page?.url}`,
+                  : `OpenUI sidecar artifact ready: ${artifact.artifactId}. The Nuwax Host will open it through the authenticated proxied page URL. Do not expose structuredContent.page.url to the user because it is an internal local Runtime locator.`,
             },
           ],
           structuredContent: artifact,

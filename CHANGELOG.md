@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.12
+
+- Treat sidecar `structuredContent.page.url` as an internal local Runtime
+  locator and explicitly prohibit Agents from showing it to users.
+- Return only the Artifact ID in the sidecar tool text result. The Nuwax Host
+  derives the authenticated user-facing proxy URL from conversation context.
+
 ## 0.1.11
 
 - Fix dashboard authoring guidance for reactive filters: empty input/select

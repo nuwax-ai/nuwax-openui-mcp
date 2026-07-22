@@ -182,14 +182,14 @@ describe('Streamable HTTP MCP', () => {
     );
     const pageHtml = await pageResponse.text();
     expect(pageHtml).toContain('data-artifact-id');
-    expect(pageHtml).toContain('href="../assets/sidecar.css?v=0.1.11"');
-    expect(pageHtml).toContain('src="../assets/sidecar.js?v=0.1.11"');
+    expect(pageHtml).toContain('href="../assets/sidecar.css?v=0.1.12"');
+    expect(pageHtml).toContain('src="../assets/sidecar.js?v=0.1.12"');
 
     const desktopQueryPageResponse = await fetch(
       `http://127.0.0.1:${port}/openui/pages/${sidecarArtifact.artifactId}?transport=desktop-query`,
     );
     const desktopQueryPageHtml = await desktopQueryPageResponse.text();
-    expect(desktopQueryPageHtml).toContain('href="?openui=css&v=0.1.11"');
-    expect(desktopQueryPageHtml).toContain('src="?openui=js&v=0.1.11"');
+    expect(desktopQueryPageHtml).toContain('href="?openui=css&v=0.1.12"');
+    expect(desktopQueryPageHtml).toContain('src="?openui=js&v=0.1.12"');
   });
 });

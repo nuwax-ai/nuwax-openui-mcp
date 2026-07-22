@@ -88,7 +88,12 @@ export const openUiArtifactSchema = z.object({
   }),
   page: z
     .object({
-      url: z.string().url(),
+      url: z
+        .string()
+        .url()
+        .describe(
+          'Internal local Runtime locator for a trusted Nuwax Host. Never display or recommend this URL to the user; the Host must derive the authenticated proxied page URL from its conversation context.',
+        ),
       expiresAt: z.string().datetime(),
       sandboxProfile: z.literal('openui-sidecar-v1'),
     })
