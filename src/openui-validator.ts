@@ -14,6 +14,22 @@ export function validateOpenUiDocument(source: string): void {
   const result = parser.parse(source);
   const errors = result.meta.errors.map((error) => error.message);
 
+  for (const line of source.split(/\r?\n/)) {
+    const filterIndex = line.indexOf('@Filter(');
+    const fallbackIndex = line.indexOf('?');
+    const hasReactiveFilterValue =
+      filterIndex >= 0 &&
+      /@Filter\([^\n]*,\s*\$[A-Za-z_][A-Za-z0-9_]*\s*\)/.test(line);
+    const hasFallbackBeforeFilter =
+      fallbackIndex >= 0 && fallbackIndex < filterIndex;
+
+    if (hasReactiveFilterValue && !hasFallbackBeforeFilter) {
+      errors.push(
+        'Reactive Filter binding must handle its empty initial value with a conditional fallback before @Filter.',
+      );
+    }
+  }
+
   if (!result.root) errors.push('The document has no renderable root.');
   if (result.root && result.root.typeName !== 'Stack') {
     errors.push('The root component must be Stack.');

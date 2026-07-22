@@ -28,4 +28,30 @@ describe('validateOpenUiDocument', () => {
       ),
     ).toThrow('root component must be Stack');
   });
+
+  it('rejects an optional Filter binding without an empty-value fallback', () => {
+    expect(() =>
+      validateOpenUiDocument(
+        [
+          'root = Stack([count])',
+          'count = TextContent("" + @Count(filtered))',
+          'rows = [{name: "Keyboard"}]',
+          'filtered = @Filter(rows, "name", "contains", $search)',
+        ].join('\n'),
+      ),
+    ).toThrow('Reactive Filter binding must handle its empty initial value');
+  });
+
+  it('accepts a Filter binding guarded by an empty-value fallback', () => {
+    expect(() =>
+      validateOpenUiDocument(
+        [
+          'root = Stack([count])',
+          'count = TextContent("" + @Count(filtered))',
+          'rows = [{name: "Keyboard"}]',
+          'filtered = $search == "" ? rows : @Filter(rows, "name", "contains", $search)',
+        ].join('\n'),
+      ),
+    ).not.toThrow();
+  });
 });

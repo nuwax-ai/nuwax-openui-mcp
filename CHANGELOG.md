@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.1.11
+
+- Fix dashboard authoring guidance for reactive filters: empty input/select
+  bindings must bypass `@Filter` so initial KPIs, charts, and tables keep their
+  source rows.
+- Reject unguarded reactive `@Filter(..., $binding)` statements during Artifact
+  validation, returning an actionable correction to the Agent.
+- Require an explicit empty state for zero-total dynamic pie/radial chart data
+  in the dashboard reference.
+- Clarify that named numeric references inside chart arrays are supported; when
+  all dashboard outputs are zero, the upstream filtered dataset is the first
+  diagnostic target.
+
 ## 0.1.10
 
 - Serve the optional shared OpenUI Runtime page for both inline and sidecar

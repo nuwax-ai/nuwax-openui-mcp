@@ -52,7 +52,7 @@ export const renderOpenUiInputSchema = z.object({
       .min(1)
       .max(100_000)
       .describe(
-        'OpenUI Lang assignment syntax, NEVER XML/HTML/JSX. The first line must define root = Stack(...); arguments are positional. Minimal valid example: root = Stack([title])\\ntitle = TextContent("Ready", "large-heavy"). Call nuwax_get_openui_reference before authoring a complex document or whenever a signature is uncertain.',
+        'OpenUI Lang assignment syntax, NEVER XML/HTML/JSX. The first line must define root = Stack(...); arguments are positional. Minimal valid example: root = Stack([title])\\ntitle = TextContent("Ready", "large-heavy"). Call nuwax_get_openui_reference before authoring a complex document or whenever a signature is uncertain. Reactive filters must bypass @Filter while their $binding is empty, and dynamic pie/radial charts must show an empty state when their total is zero.',
       ),
   }),
   bindings: z

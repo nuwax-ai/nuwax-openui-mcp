@@ -107,7 +107,7 @@ one process and one sidecar port:
   "mcpServers": {
     "nuwax-openui": {
       "command": "npx",
-      "args": ["-y", "@nuwax-ai/openui-mcp@0.1.10"],
+      "args": ["-y", "@nuwax-ai/openui-mcp@0.1.11"],
       "env": {
         "NUWAX_OPENUI_HOST": "127.0.0.1",
         "NUWAX_OPENUI_PORT": "8787",
