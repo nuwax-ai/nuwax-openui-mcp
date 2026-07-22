@@ -91,7 +91,7 @@ one process and one sidecar port:
   "mcpServers": {
     "nuwax-openui": {
       "command": "npx",
-      "args": ["-y", "@nuwax-ai/openui-mcp@0.1.1"],
+      "args": ["-y", "@nuwax-ai/openui-mcp@0.1.2"],
       "env": {
         "NUWAX_OPENUI_HOST": "127.0.0.1",
         "NUWAX_OPENUI_PORT": "8787",
@@ -104,6 +104,10 @@ one process and one sidecar port:
   }
 }
 ```
+
+> **Note:** The package exposes `openui-mcp` as the default bin (matching the
+> unscoped package name) so `npx @nuwax-ai/openui-mcp` resolves to the stdio
+> entry. Aliases: `nuwax-openui-mcp` (stdio), `nuwax-openui-mcp-http` (HTTP).
 
 ## Run over Streamable HTTP
 

@@ -1,6 +1,6 @@
 {
   "name": "@nuwax-ai/openui-mcp",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "OpenUI over MCP for Nuwax, with inline and sidecar rendering contracts.",
   "type": "module",
   "license": "Apache-2.0",
@@ -25,6 +25,7 @@
     }
   },
   "bin": {
+    "openui-mcp": "dist/server/stdio.js",
     "nuwax-openui-mcp": "dist/server/stdio.js",
     "nuwax-openui-mcp-http": "dist/server/http.js"
   },
