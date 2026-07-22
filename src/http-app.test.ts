@@ -102,13 +102,26 @@ describe('Streamable HTTP MCP', () => {
 
     const referenceResult = await client.callTool({
       name: OPENUI_REFERENCE_TOOL_NAME,
-      arguments: { profile: 'dashboard' },
+      arguments: { format: 'guide', profile: 'dashboard' },
     });
     expect(referenceResult.content).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           type: 'text',
           text: expect.stringContaining('PieChart('),
+        }),
+      ]),
+    );
+
+    const schemaToolResult = await client.callTool({
+      name: OPENUI_REFERENCE_TOOL_NAME,
+      arguments: { format: 'schema', profile: 'all' },
+    });
+    expect(schemaToolResult.content).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          type: 'text',
+          text: expect.stringContaining('"Stack"'),
         }),
       ]),
     );

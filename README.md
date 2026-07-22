@@ -91,7 +91,7 @@ one process and one sidecar port:
   "mcpServers": {
     "nuwax-openui": {
       "command": "npx",
-      "args": ["-y", "@nuwax-ai/openui-mcp@0.1.3"],
+      "args": ["-y", "@nuwax-ai/openui-mcp@0.1.4"],
       "env": {
         "NUWAX_OPENUI_HOST": "127.0.0.1",
         "NUWAX_OPENUI_PORT": "8787",
@@ -166,12 +166,12 @@ Do not infer UI from arbitrary MCP tool results.
 The server publishes the DSL contract through multiple MCP capabilities so an
 Agent does not need to guess syntax or inspect installed package files:
 
-| Capability | Name / URI                            | Purpose                                                                             |
-| ---------- | ------------------------------------- | ----------------------------------------------------------------------------------- |
-| Tool       | `nuwax_get_openui_reference`          | Returns authoritative syntax, component signatures, actions, bindings, and examples |
-| Prompt     | `nuwax_openui_authoring`              | Starts an authoring flow with a `basic`, `dashboard`, `form`, or `all` focus        |
-| Resource   | `nuwax://openui/schema/v0.5`          | Complete JSON Schema generated from the renderer's current component library        |
-| Resource   | `nuwax://openui/authoring-guide/v0.5` | Complete generated OpenUI Lang authoring guide                                      |
+| Capability | Name / URI                            | Purpose                                                                      |
+| ---------- | ------------------------------------- | ---------------------------------------------------------------------------- |
+| Tool       | `nuwax_get_openui_reference`          | Returns the generated authoring guide or complete DSL JSON Schema            |
+| Prompt     | `nuwax_openui_authoring`              | Starts an authoring flow with a `basic`, `dashboard`, `form`, or `all` focus |
+| Resource   | `nuwax://openui/schema/v0.5`          | Complete JSON Schema generated from the renderer's current component library |
+| Resource   | `nuwax://openui/authoring-guide/v0.5` | Complete generated OpenUI Lang authoring guide                               |
 
 `nuwax_render_openui` also includes trigger guidance and a minimal valid example
 in its tool description and input schema. Agents should use it when the user
@@ -179,9 +179,10 @@ asks for a visual card, dashboard, chart, table, report, form, status panel, or
 other structured interface even if the user does not explicitly mention
 OpenUI.
 
-For a complex interface, call `nuwax_get_openui_reference` with the closest
-profile before rendering. OpenUI Lang is assignment-based and is not XML,
-HTML, or JSX:
+For a complex interface, call `nuwax_get_openui_reference` with `format=guide`
+and the closest profile before rendering. Clients that only expose MCP tools
+can also retrieve the complete DSL schema with `format=schema`. OpenUI Lang is
+assignment-based and is not XML, HTML, or JSX:
 
 ```text
 root = Stack([title, status])

@@ -20,7 +20,7 @@ export function createOpenUiMcpServer(
 ): McpServer {
   const server = new McpServer({
     name: 'nuwax-openui-mcp',
-    version: '0.1.3',
+    version: '0.1.4',
   });
 
   server.registerResource(
@@ -69,7 +69,7 @@ export function createOpenUiMcpServer(
       title: 'Author a Nuwax OpenUI interface',
       description:
         'Load the authoritative DSL syntax, component schema, and examples before creating a Nuwax visual interface.',
-      argsSchema: openUiReferenceInputSchema.shape,
+      argsSchema: { profile: openUiReferenceInputSchema.shape.profile },
     },
     ({ profile }) => ({
       description: `OpenUI ${profile} authoring instructions`,
@@ -90,7 +90,7 @@ export function createOpenUiMcpServer(
     {
       title: 'Get Nuwax OpenUI authoring reference',
       description:
-        'Get the authoritative OpenUI Lang syntax and component signatures before creating a complex Nuwax UI. Use this instead of guessing syntax or searching local package files. Choose dashboard for tables/charts, form for inputs, basic for cards/content, and all only as a fallback.',
+        'Get the authoritative OpenUI Lang contract before creating a complex Nuwax UI. Use format=guide for syntax, component signatures, and examples; use format=schema for the complete renderer-generated JSON Schema. Use this instead of guessing syntax or searching local package files. Choose dashboard for tables/charts, form for inputs, basic for cards/content, and all only as a fallback.',
       inputSchema: openUiReferenceInputSchema,
       annotations: {
         readOnlyHint: true,
@@ -99,8 +99,16 @@ export function createOpenUiMcpServer(
         openWorldHint: false,
       },
     },
-    async ({ profile }) => ({
-      content: [{ type: 'text' as const, text: getOpenUiReference(profile) }],
+    async ({ format, profile }) => ({
+      content: [
+        {
+          type: 'text' as const,
+          text:
+            format === 'schema'
+              ? getOpenUiDslSchema()
+              : getOpenUiReference(profile),
+        },
+      ],
     }),
   );
 

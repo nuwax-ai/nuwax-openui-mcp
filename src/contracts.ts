@@ -10,6 +10,12 @@ export const OPENUI_GUIDE_RESOURCE_URI =
   'nuwax://openui/authoring-guide/v0.5' as const;
 
 export const openUiReferenceInputSchema = z.object({
+  format: z
+    .enum(['guide', 'schema'])
+    .default('guide')
+    .describe(
+      'Use guide for authoring instructions, component signatures, and examples. Use schema for the complete renderer-generated JSON Schema.',
+    ),
   profile: z
     .enum(['basic', 'dashboard', 'form', 'all'])
     .default('basic')
