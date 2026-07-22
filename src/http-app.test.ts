@@ -6,7 +6,13 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import { InMemoryArtifactStore } from './artifact-store.js';
 import type { AppConfig } from './config.js';
-import { OPENUI_TOOL_NAME } from './contracts.js';
+import {
+  OPENUI_AUTHORING_PROMPT_NAME,
+  OPENUI_GUIDE_RESOURCE_URI,
+  OPENUI_REFERENCE_TOOL_NAME,
+  OPENUI_SCHEMA_RESOURCE_URI,
+  OPENUI_TOOL_NAME,
+} from './contracts.js';
 import { createHttpApp } from './http-app.js';
 import { RenderOpenUiService } from './render-service.js';
 import { validInlineInput } from './test/fixtures.js';
@@ -52,7 +58,60 @@ describe('Streamable HTTP MCP', () => {
     closeCallbacks.push(() => client.close());
 
     const tools = await client.listTools();
-    expect(tools.tools.map((tool) => tool.name)).toContain(OPENUI_TOOL_NAME);
+    expect(tools.tools.map((tool) => tool.name)).toEqual(
+      expect.arrayContaining([OPENUI_REFERENCE_TOOL_NAME, OPENUI_TOOL_NAME]),
+    );
+    const renderTool = tools.tools.find(
+      (tool) => tool.name === OPENUI_TOOL_NAME,
+    );
+    expect(renderTool?.description).toContain(
+      'even if they do not mention OpenUI',
+    );
+    expect(
+      renderTool?.inputSchema.properties?.document.properties?.source
+        .description,
+    ).toContain('NEVER XML/HTML/JSX');
+
+    const resources = await client.listResources();
+    expect(resources.resources.map((resource) => resource.uri)).toEqual(
+      expect.arrayContaining([
+        OPENUI_SCHEMA_RESOURCE_URI,
+        OPENUI_GUIDE_RESOURCE_URI,
+      ]),
+    );
+    const schemaResource = await client.readResource({
+      uri: OPENUI_SCHEMA_RESOURCE_URI,
+    });
+    expect(schemaResource.contents[0]).toMatchObject({
+      mimeType: 'application/schema+json',
+      text: expect.stringContaining('Stack'),
+    });
+
+    const prompts = await client.listPrompts();
+    expect(prompts.prompts.map((prompt) => prompt.name)).toContain(
+      OPENUI_AUTHORING_PROMPT_NAME,
+    );
+    const authoringPrompt = await client.getPrompt({
+      name: OPENUI_AUTHORING_PROMPT_NAME,
+      arguments: { profile: 'basic' },
+    });
+    expect(authoringPrompt.messages[0]?.content).toMatchObject({
+      type: 'text',
+      text: expect.stringContaining('root = Stack'),
+    });
+
+    const referenceResult = await client.callTool({
+      name: OPENUI_REFERENCE_TOOL_NAME,
+      arguments: { profile: 'dashboard' },
+    });
+    expect(referenceResult.content).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          type: 'text',
+          text: expect.stringContaining('PieChart('),
+        }),
+      ]),
+    );
 
     const result = await client.callTool({
       name: OPENUI_TOOL_NAME,
@@ -64,6 +123,26 @@ describe('Streamable HTTP MCP', () => {
       schemaVersion: 'nuwax.openui/v1',
       presentation: { mode: 'inline' },
     });
+
+    const invalidResult = await client.callTool({
+      name: OPENUI_TOOL_NAME,
+      arguments: {
+        ...validInlineInput,
+        document: {
+          ...validInlineInput.document,
+          source: '<Stack><Text>Invalid</Text></Stack>',
+        },
+      },
+    });
+    expect(invalidResult.isError).toBe(true);
+    expect(invalidResult.content).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          type: 'text',
+          text: expect.stringContaining(OPENUI_REFERENCE_TOOL_NAME),
+        }),
+      ]),
+    );
 
     const sidecarResult = await client.callTool({
       name: OPENUI_TOOL_NAME,
