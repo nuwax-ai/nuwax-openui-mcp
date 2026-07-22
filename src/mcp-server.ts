@@ -12,7 +12,11 @@ import {
   renderOpenUiInputSchema,
 } from './contracts.js';
 import { OPENUI_MCP_VERSION } from './version.js';
-import { getOpenUiDslSchema, getOpenUiReference } from './openui-reference.js';
+import {
+  getOpenUiDslSchema,
+  getOpenUiReference,
+  OPENUI_TOOL_BOUNDARY,
+} from './openui-reference.js';
 import { OpenUiPolicyError } from './policy.js';
 import type { RenderOpenUiService } from './render-service.js';
 
@@ -117,8 +121,7 @@ export function createOpenUiMcpServer(
     OPENUI_TOOL_NAME,
     {
       title: 'Render Nuwax OpenUI',
-      description:
-        'Create or update a durable OpenUI artifact in the active project. Use this whenever the user asks to show, render, visualize, preview, or build a card, dashboard, chart, table, report, form, status panel, or other structured interface—even if they do not mention OpenUI. The tool writes data/{artifactId}.openui.json and returns a lightweight reference. Reuse artifactId to update an existing UI. OpenUI Lang is assignment-based and is NEVER XML/HTML/JSX: start with root = Stack(...), use positional arguments, and reference every defined variable. For complex UI or uncertain component signatures, call nuwax_get_openui_reference first. Reactive filters must handle empty initial bindings, and dynamic pie/radial charts must guard zero totals. Use inline for compact conversation UI and sidecar only for a full page.',
+      description: `${OPENUI_TOOL_BOUNDARY}\nCreate or update a durable OpenUI artifact in the active project. Use this whenever the user asks to show, render, visualize, preview, or build a card, dashboard, chart, table, report, form, status panel, or other structured interface—even if they do not mention OpenUI. The tool writes data/{artifactId}.openui.json and returns a lightweight reference. Reuse artifactId to update an existing UI. OpenUI Lang is assignment-based and is NEVER XML/HTML/JSX: start with root = Stack(...), use positional arguments, and reference every defined variable. For complex UI or uncertain component signatures, call nuwax_get_openui_reference first. Reactive filters must handle empty initial bindings, and dynamic pie/radial charts must guard zero totals. Use inline for compact conversation UI and sidecar only for a full page.`,
       inputSchema: renderOpenUiInputSchema,
       outputSchema: openUiArtifactRefSchema,
       annotations: {

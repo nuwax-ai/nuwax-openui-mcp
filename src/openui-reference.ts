@@ -11,6 +11,14 @@ const PROFILE_FOCUS: Record<OpenUiReferenceInput['profile'], string> = {
   all: 'Use any documented component, but prefer the smallest set that satisfies the request.',
 };
 
+export const OPENUI_TOOL_BOUNDARY = `## Tool Boundary (CRITICAL)
+
+- nuwax_render_openui and nuwax_ask_question are separate tools; nuwax_render_openui is not an alias for nuwax_ask_question.
+- Use nuwax_render_openui to create or update a durable visual Artifact: cards, dashboards, charts, tables, reports, application forms, and interactive pages.
+- Never substitute nuwax_ask_question when the user asks to render, show, preview, demonstrate, or update OpenUI. Load the OpenUI reference, author openui-lang, then call nuwax_render_openui.
+- nuwax_ask_question is only for a blocking clarification or decision that the Agent must receive before it can continue. Its inline/modal/wizard schema is not OpenUI Lang and must never be passed to nuwax_render_openui.
+`;
+
 const REACTIVE_DASHBOARD_GUARDRAILS = `## Nuwax Reactive Dashboard Guardrails (CRITICAL)
 
 - Reactive input and select bindings start with an empty value. An optional filter MUST bypass @Filter until its binding is non-empty.
@@ -36,7 +44,7 @@ export function getOpenUiReference(
     profile === 'dashboard' || profile === 'all'
       ? `\n\n${REACTIVE_DASHBOARD_GUARDRAILS}`
       : '';
-  return `Authoring profile: ${profile}. ${PROFILE_FOCUS[profile]}\nDo not emit XML, HTML, JSX, markdown fences, or explanations inside document.source.${guardrails}\n\n${normalizeGeneratedReference(openuiLibrary.prompt({}))}`;
+  return `${OPENUI_TOOL_BOUNDARY}\nAuthoring profile: ${profile}. ${PROFILE_FOCUS[profile]}\nDo not emit XML, HTML, JSX, markdown fences, or explanations inside document.source.${guardrails}\n\n${normalizeGeneratedReference(openuiLibrary.prompt({}))}`;
 }
 
 export function getOpenUiDslSchema(): string {

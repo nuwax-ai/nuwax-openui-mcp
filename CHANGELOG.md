@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.1
+
+- Clarify that `nuwax_render_openui` creates OpenUI Artifacts and is never an alias for the blocking `nuwax_ask_question` interaction tool.
+- Keep the MCP server-reported version aligned with the npm package version.
+
 ## 0.2.0
 
 - Persist OpenUI artifacts as `data/{artifactId}.openui.json`.
