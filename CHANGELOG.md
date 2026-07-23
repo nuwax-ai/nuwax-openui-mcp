@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.2
+
+- Apply the Host-selected light or dark mode through OpenUI's official
+  `ThemeProvider` instead of falling back to the operating-system color scheme.
+- Keep the frozen Runtime light by default until a Host explicitly requests
+  dark mode.
+
 ## 0.2.1
 
 - Clarify that `nuwax_render_openui` creates OpenUI Artifacts and is never an alias for the blocking `nuwax_ask_question` interaction tool.

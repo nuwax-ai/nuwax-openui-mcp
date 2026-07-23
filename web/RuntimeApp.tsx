@@ -1,4 +1,5 @@
 import { Renderer, type ActionEvent } from '@openuidev/react-lang';
+import { ThemeProvider } from '@openuidev/react-ui';
 import { openuiLibrary } from '@openuidev/react-ui/genui-lib';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
@@ -40,6 +41,7 @@ export function RuntimeApp() {
   const [artifact, setArtifact] = useState<RuntimeArtifact | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pendingActionId, setPendingActionId] = useState<string | null>(null);
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const stateRef = useRef<Record<string, unknown>>({});
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -52,7 +54,9 @@ export function RuntimeApp() {
       if (message.data.type === 'OPENUI_LOAD') {
         if (message.data.protocolVersion !== protocolVersion) return;
         document.documentElement.lang = message.data.locale || 'en';
-        document.documentElement.dataset.theme = message.data.theme || 'light';
+        const nextTheme = message.data.theme || 'light';
+        document.documentElement.dataset.theme = nextTheme;
+        setTheme(nextTheme);
         document.documentElement.dataset.viewport =
           message.data.viewport || 'desktop';
         setError(null);
@@ -126,22 +130,24 @@ export function RuntimeApp() {
   return (
     <div ref={containerRef} className="openui-runtime">
       {error ? <div className="openui-action-error">{error}</div> : null}
-      <Renderer
-        library={openuiLibrary}
-        response={artifact.document.source}
-        isStreaming={Boolean(pendingActionId)}
-        onStateUpdate={(state) => {
-          stateRef.current = state;
-        }}
-        onAction={handleAction}
-        onError={(errors) => {
-          if (errors.length > 0) {
-            const message = errors[0]?.message ?? 'Render failed.';
-            setError(message);
-            postToHost({ type: 'OPENUI_ERROR', nonce, message });
-          }
-        }}
-      />
+      <ThemeProvider mode={theme}>
+        <Renderer
+          library={openuiLibrary}
+          response={artifact.document.source}
+          isStreaming={Boolean(pendingActionId)}
+          onStateUpdate={(state) => {
+            stateRef.current = state;
+          }}
+          onAction={handleAction}
+          onError={(errors) => {
+            if (errors.length > 0) {
+              const message = errors[0]?.message ?? 'Render failed.';
+              setError(message);
+              postToHost({ type: 'OPENUI_ERROR', nonce, message });
+            }
+          }}
+        />
+      </ThemeProvider>
     </div>
   );
 }
