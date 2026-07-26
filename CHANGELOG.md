@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.3
+
+- Add a compact density theme (`@nuwax-ai/openui-mcp/compact-theme`) tuned to the
+  Nuwax host baseline (14px body text, tighter spacing and radii), and apply it
+  to the frozen Runtime through the official `ThemeProvider` so sidecar and file
+  preview render more compactly.
+- Narrow the Runtime canvas from 1440px to 1080px and reduce its outer padding.
+
 ## 0.2.2
 
 - Apply the Host-selected light or dark mode through OpenUI's official

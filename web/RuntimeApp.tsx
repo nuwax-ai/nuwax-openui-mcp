@@ -1,6 +1,7 @@
 import { Renderer, type ActionEvent } from '@openuidev/react-lang';
 import { ThemeProvider } from '@openuidev/react-ui';
 import { openuiLibrary } from '@openuidev/react-ui/genui-lib';
+import { compactOpenUiTheme } from '../src/compactTheme';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface RuntimeArtifact {
@@ -130,7 +131,7 @@ export function RuntimeApp() {
   return (
     <div ref={containerRef} className="openui-runtime">
       {error ? <div className="openui-action-error">{error}</div> : null}
-      <ThemeProvider mode={theme}>
+      <ThemeProvider mode={theme} lightTheme={compactOpenUiTheme}>
         <Renderer
           library={openuiLibrary}
           response={artifact.document.source}
