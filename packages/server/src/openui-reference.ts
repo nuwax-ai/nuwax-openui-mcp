@@ -1,5 +1,7 @@
-import { openuiLibrary } from '@openuidev/react-ui/genui-lib';
-
+import {
+  readOpenUiReferenceRaw,
+  readOpenUiSchemaText,
+} from './openui-assets.js';
 import type { OpenUiReferenceInput } from './contracts.js';
 
 const PROFILE_FOCUS: Record<OpenUiReferenceInput['profile'], string> = {
@@ -44,9 +46,9 @@ export function getOpenUiReference(
     profile === 'dashboard' || profile === 'all'
       ? `\n\n${REACTIVE_DASHBOARD_GUARDRAILS}`
       : '';
-  return `${OPENUI_TOOL_BOUNDARY}\nAuthoring profile: ${profile}. ${PROFILE_FOCUS[profile]}\nDo not emit XML, HTML, JSX, markdown fences, or explanations inside document.source.${guardrails}\n\n${normalizeGeneratedReference(openuiLibrary.prompt({}))}`;
+  return `${OPENUI_TOOL_BOUNDARY}\nAuthoring profile: ${profile}. ${PROFILE_FOCUS[profile]}\nDo not emit XML, HTML, JSX, markdown fences, or explanations inside document.source.${guardrails}\n\n${normalizeGeneratedReference(readOpenUiReferenceRaw())}`;
 }
 
 export function getOpenUiDslSchema(): string {
-  return JSON.stringify(openuiLibrary.toJSONSchema(), null, 2);
+  return readOpenUiSchemaText();
 }

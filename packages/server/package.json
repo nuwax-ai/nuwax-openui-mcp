@@ -1,0 +1,60 @@
+{
+  "name": "@nuwax-ai/openui-mcp",
+  "version": "0.3.0",
+  "description": "Durable file-based OpenUI artifacts over MCP for Nuwax.",
+  "type": "module",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nuwax-ai/nuwax-openui-mcp.git",
+    "directory": "packages/server"
+  },
+  "homepage": "https://github.com/nuwax-ai/nuwax-openui-mcp#readme",
+  "bugs": {
+    "url": "https://github.com/nuwax-ai/nuwax-openui-mcp/issues"
+  },
+  "main": "./dist/server/index.js",
+  "types": "./dist/server/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/server/index.d.ts",
+      "import": "./dist/server/index.js"
+    },
+    "./contracts": {
+      "types": "./dist/server/contracts.d.ts",
+      "import": "./dist/server/contracts.js"
+    },
+    "./compact-theme": {
+      "types": "./dist/server/compactTheme.d.ts",
+      "import": "./dist/server/compactTheme.js"
+    }
+  },
+  "bin": {
+    "openui-mcp": "dist/server/stdio.js",
+    "nuwax-openui-mcp": "dist/server/stdio.js"
+  },
+  "files": [
+    "dist/server",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "pnpm --workspace-root build:server",
+    "prepublishOnly": "pnpm --workspace-root verify"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.29.0",
+    "@openuidev/react-lang": "0.2.8",
+    "dotenv": "17.4.2",
+    "react": "18.3.1",
+    "zod": "4.1.12"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

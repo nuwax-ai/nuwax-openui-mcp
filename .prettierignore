@@ -1,0 +1,4 @@
+**/dist
+coverage
+packages/server/src/generated
+pnpm-lock.yaml

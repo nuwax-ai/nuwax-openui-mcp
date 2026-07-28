@@ -9,12 +9,13 @@ export default defineConfig({
   build: {
     cssCodeSplit: false,
     emptyOutDir: true,
+    sourcemap: false,
     lib: {
       entry: 'web/main.tsx',
       formats: ['es'],
       fileName: () => 'runtime.js',
     },
-    outDir: 'dist/web',
+    outDir: 'dist',
     rollupOptions: {
       output: {
         assetFileNames: 'runtime.[ext]',

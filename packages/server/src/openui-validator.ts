@@ -1,7 +1,8 @@
 import { createParser } from '@openuidev/react-lang';
-import { openuiLibrary } from '@openuidev/react-ui/genui-lib';
 
-const parser = createParser(openuiLibrary.toJSONSchema(), 'Stack');
+import { readOpenUiSchemaText } from './openui-assets.js';
+
+const parser = createParser(JSON.parse(readOpenUiSchemaText()), 'Stack');
 
 export class OpenUiDocumentError extends Error {
   constructor(public readonly details: string[]) {

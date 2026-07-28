@@ -1,89 +1,48 @@
 {
-  "name": "@nuwax-ai/openui-mcp",
-  "version": "0.2.4",
-  "description": "Durable file-based OpenUI artifacts over MCP for Nuwax.",
+  "name": "nuwax-openui-mcp-workspace",
+  "private": true,
+  "version": "0.3.0",
+  "description": "Nuwax OpenUI MCP workspace (server + frozen renderer runtime).",
   "type": "module",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/nuwax-ai/nuwax-openui-mcp.git"
   },
-  "homepage": "https://github.com/nuwax-ai/nuwax-openui-mcp#readme",
-  "bugs": {
-    "url": "https://github.com/nuwax-ai/nuwax-openui-mcp/issues"
-  },
-  "main": "./dist/server/index.js",
-  "types": "./dist/server/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/server/index.d.ts",
-      "import": "./dist/server/index.js"
-    },
-    "./contracts": {
-      "types": "./dist/server/contracts.d.ts",
-      "import": "./dist/server/contracts.js"
-    },
-    "./compact-theme": {
-      "types": "./dist/server/compactTheme.d.ts",
-      "import": "./dist/server/compactTheme.js"
-    }
-  },
-  "bin": {
-    "openui-mcp": "dist/server/stdio.js",
-    "nuwax-openui-mcp": "dist/server/stdio.js"
-  },
-  "files": [
-    "dist",
-    "README.md",
-    "CHANGELOG.md",
-    "LICENSE"
-  ],
   "scripts": {
-    "build": "pnpm clean && pnpm build:server && pnpm build:web",
-    "build:server": "tsc -p tsconfig.server.json",
-    "build:web": "vite build",
-    "clean": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",
-    "dev:stdio": "tsx src/stdio.ts",
+    "build": "pnpm clean && pnpm build:server && pnpm build:runtime",
+    "build:server": "pnpm gen:openui && tsc -p packages/server/tsconfig.json && node packages/server/scripts/copy-openui-artifacts.mjs",
+    "build:runtime": "pnpm --filter @nuwax-ai/openui-runtime build",
+    "clean": "node -e \"require('node:fs').rmSync('packages/server/dist', { recursive: true, force: true })\"",
+    "dev:stdio": "tsx packages/server/src/stdio.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "gen:openui": "node packages/server/scripts/gen-openui-artifacts.mjs",
     "lint": "eslint .",
-    "start": "node dist/server/stdio.js",
-    "test": "vitest run",
+    "start": "node packages/server/dist/server/stdio.js",
+    "test": "pnpm gen:openui && vitest run",
     "test:watch": "vitest",
-    "typecheck": "tsc -p tsconfig.server.json --noEmit && tsc -p tsconfig.web.json --noEmit",
+    "typecheck": "tsc -p packages/server/tsconfig.json --noEmit && pnpm --filter @nuwax-ai/openui-runtime typecheck",
     "verify": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build",
-    "prepublishOnly": "pnpm verify"
-  },
-  "publishConfig": {
-    "access": "public",
-    "registry": "https://registry.npmjs.org/"
-  },
-  "dependencies": {
-    "@modelcontextprotocol/sdk": "1.29.0",
-    "@openuidev/react-lang": "0.2.8",
-    "@openuidev/react-ui": "0.12.1",
-    "dotenv": "17.4.2",
-    "react": "18.3.1",
-    "react-dom": "18.3.1",
-    "zod": "4.1.12",
-    "zustand": "4.5.7"
+    "prepublishOnly": "echo 'Publish with: pnpm publish --filter @nuwax-ai/openui-mcp && pnpm publish --filter @nuwax-ai/openui-runtime' && exit 1"
   },
   "devDependencies": {
     "@eslint/js": "9.39.1",
+    "@openuidev/react-ui": "0.12.1",
     "@types/node": "24.10.1",
     "@types/react": "18.3.27",
     "@types/react-dom": "18.3.7",
-    "@vitejs/plugin-react": "5.1.1",
     "eslint": "9.39.1",
     "eslint-plugin-react-hooks": "7.0.1",
     "eslint-plugin-react-refresh": "0.4.24",
     "globals": "16.5.0",
     "prettier": "3.7.4",
+    "react-dom": "18.3.1",
     "tsx": "4.21.0",
     "typescript": "5.9.3",
     "typescript-eslint": "8.48.1",
-    "vite": "7.2.6",
-    "vitest": "4.0.15"
+    "vitest": "4.0.15",
+    "zustand": "4.5.7"
   },
   "engines": {
     "node": ">=20"

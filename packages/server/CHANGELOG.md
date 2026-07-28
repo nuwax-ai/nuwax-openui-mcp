@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.3.0
+
+- **Smaller, faster-starting MCP server.** The server no longer imports
+  `@openuidev/react-ui/genui-lib` at runtime, so it stops pulling react-dom,
+  recharts, react-syntax-highlighter, and the full ~20 MB OpenUI renderer stack
+  into the stdio process on every start. The component JSON Schema and authoring
+  reference are now precomputed at build time into `src/generated/` and read as
+  static files at runtime. `--version` now starts in ~25 ms.
+- **Web bundle moved to a separate package.** The frozen renderer runtime
+  (`runtime.js` + `runtime.css`) ships in the new `@nuwax-ai/openui-runtime`
+  package instead of `@nuwax-ai/openui-mcp`. The MCP server package drops from
+  862 kB to ~33 kB packed (3.7 MB → 137 kB unpacked). Hosts sync the runtime via
+  `@nuwax-ai/openui-runtime/dist`.
+- **Slimmed runtime dependencies.** `@openuidev/react-ui`, `react-dom`, and
+  `zustand` are no longer runtime dependencies of the MCP server package (only
+  `@modelcontextprotocol/sdk`, `@openuidev/react-lang`, `dotenv`, `react`, and
+  `zod` remain); a clean install no longer resolves `react-dom`.
+- **Removed source maps** from `dist` (`sourceMap` and `declarationMap` off).
+
 ## 0.2.4
 
 - Support `openui-mcp --version` / `-V` to print the installed npm package

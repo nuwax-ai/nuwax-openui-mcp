@@ -5,15 +5,17 @@ import reactRefresh from 'eslint-plugin-react-refresh';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
-  { ignores: ['dist', 'coverage'] },
+  {
+    ignores: ['**/dist', 'coverage', 'packages/server/src/generated'],
+  },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
-    files: ['src/**/*.ts'],
+    files: ['packages/server/src/**/*.ts', 'packages/server/scripts/**/*.mjs'],
     languageOptions: { globals: globals.node },
   },
   {
-    files: ['web/**/*.{ts,tsx}'],
+    files: ['packages/runtime/web/**/*.{ts,tsx}'],
     languageOptions: { globals: globals.browser },
     plugins: {
       'react-hooks': reactHooks,

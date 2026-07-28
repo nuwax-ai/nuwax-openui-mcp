@@ -1,7 +1,7 @@
 import { Renderer, type ActionEvent } from '@openuidev/react-lang';
 import { ThemeProvider } from '@openuidev/react-ui';
 import { openuiLibrary } from '@openuidev/react-ui/genui-lib';
-import { compactOpenUiTheme } from '../src/compactTheme';
+import { compactOpenUiTheme } from '../../server/src/compactTheme';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface RuntimeArtifact {
