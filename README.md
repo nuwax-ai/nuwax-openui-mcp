@@ -29,7 +29,7 @@ project directory:
   "mcpServers": {
     "nuwax-openui": {
       "command": "npx",
-      "args": ["-y", "@nuwax-ai/openui-mcp@0.2.0"]
+      "args": ["-y", "@nuwax-ai/openui-mcp@0.2.4"]
     }
   }
 }
@@ -38,6 +38,17 @@ project directory:
 Do not configure it as a persistent/global MCP. If the host cannot provide the
 project as the process working directory or an MCP Root, set
 `NUWAX_OPENUI_PROJECT_ROOT` explicitly.
+
+### Check installed version
+
+Print the npm package version without starting the MCP stdio server:
+
+```bash
+npx -y @nuwax-ai/openui-mcp@latest --version
+# or, after a global / local install:
+openui-mcp --version
+nuwax-openui-mcp -V
+```
 
 The file repository is initialized lazily on the first render call. This avoids
 creating a `data/` directory when a client starts the server only to discover

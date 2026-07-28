@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.4
+
+- Support `openui-mcp --version` / `-V` to print the installed npm package
+  version without starting the stdio MCP server.
+- Resolve `OPENUI_MCP_VERSION` from `package.json` so CLI output and MCP
+  `serverInfo.version` stay aligned.
+
 ## 0.2.3
 
 - Add a compact density theme (`@nuwax-ai/openui-mcp/compact-theme`) tuned to the
