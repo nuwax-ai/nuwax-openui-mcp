@@ -175,7 +175,9 @@ export const openUiArtifactRefSchema = z.object({
 
 export type RenderOpenUiInput = z.infer<typeof renderOpenUiInputSchema>;
 export type OpenUiReferenceInput = z.infer<typeof openUiReferenceInputSchema>;
-export type OpenUiUpdateGuideInput = z.infer<typeof openUiUpdateGuideInputSchema>;
+export type OpenUiUpdateGuideInput = z.infer<
+  typeof openUiUpdateGuideInputSchema
+>;
 export type OpenUiArtifact = z.infer<typeof openUiArtifactSchema>;
 export type OpenUiFile = z.infer<typeof openUiFileSchema>;
 export type OpenUiArtifactRef = z.infer<typeof openUiArtifactRefSchema>;

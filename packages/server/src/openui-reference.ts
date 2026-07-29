@@ -88,8 +88,8 @@ function normalizeGeneratedReference(reference: string): string {
       '- Searchable: filtered = $search == "" ? data.rows : @Filter(data.rows, "title", "contains", $search). Bind $search to Input; the empty binding must show all rows.',
     )
     .replace(
-      '5. EVERY variable (except root) MUST be referenced by at least one other variable. Unreferenced variables are silently dropped and will NOT render. Always include defined variables in their parent\'s children/items array.',
-      '5. EVERY variable (except root) MUST be referenced by at least one other variable. On Nuwax, unreferenced variables are a VALIDATION ERROR (Orphaned statements) and the document is rejected—they are not silently dropped. Always include defined variables in their parent\'s children/items array or in Col/Table/chart expressions.',
+      "5. EVERY variable (except root) MUST be referenced by at least one other variable. Unreferenced variables are silently dropped and will NOT render. Always include defined variables in their parent's children/items array.",
+      "5. EVERY variable (except root) MUST be referenced by at least one other variable. On Nuwax, unreferenced variables are a VALIDATION ERROR (Orphaned statements) and the document is rejected—they are not silently dropped. Always include defined variables in their parent's children/items array or in Col/Table/chart expressions.",
     );
 }
 
