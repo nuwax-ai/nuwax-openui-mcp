@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.3.1
+
+- Add `nuwax_get_openui_update_guide` explaining that `*.openui.json` is the
+  dedicated OpenUI Lang data source and how to update via
+  `nuwax_render_openui` (reuse `artifactId`) or by editing the file while
+  keeping `document.digest` valid.
+- Clarify tool boundary: prefer `data/{artifactId}.openui.json`; do not invent
+  bare `.openui` paths. Direct edits of `.openui.json` are allowed when the
+  file contract is preserved.
+- Strengthen reachability guidance: orphaned variables are validation errors
+  (not silently dropped), with a minimal table wiring example and clearer
+  orphan error text.
+
 ## 0.3.0
 
 - **Smaller, faster-starting MCP server.** The server no longer imports

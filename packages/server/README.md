@@ -29,7 +29,7 @@ project directory:
   "mcpServers": {
     "nuwax-openui": {
       "command": "npx",
-      "args": ["-y", "@nuwax-ai/openui-mcp@0.3.0"]
+      "args": ["-y", "@nuwax-ai/openui-mcp@0.3.1"]
     }
   }
 }
@@ -56,14 +56,19 @@ its tool list.
 
 ## Tools and resources
 
-- `nuwax_render_openui`: creates or updates an Artifact file.
+- `nuwax_render_openui`: creates or updates an Artifact file
+  (`data/{artifactId}.openui.json`).
 - `nuwax_get_openui_reference`: returns the authoring guide or schema.
+- `nuwax_get_openui_update_guide`: how to update an existing `*.openui.json`
+  (reuse `artifactId` with render, or edit the file while keeping
+  `document.digest` valid).
 - `nuwax://openui/schema/v0.5`: renderer-generated component schema.
 - `nuwax://openui/authoring-guide/v0.5`: syntax and examples.
 - `nuwax_openui_authoring`: reusable authoring prompt.
 
 Call `nuwax_get_openui_reference` before producing complex forms, charts, or
-dashboards.
+dashboards. Call `nuwax_get_openui_update_guide` before modifying an existing
+OpenUI artifact.
 
 ## Creating an Artifact
 

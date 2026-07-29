@@ -54,4 +54,16 @@ describe('validateOpenUiDocument', () => {
       ),
     ).not.toThrow();
   });
+
+  it('rejects orphaned data variables with an actionable repair hint', () => {
+    expect(() =>
+      validateOpenUiDocument(
+        [
+          'root = Stack([title])',
+          'title = TextContent("员工信息表", "large-heavy")',
+          'usersData = [{name: "张伟", dept: "技术部"}]',
+        ].join('\n'),
+      ),
+    ).toThrow(/Orphaned statements: usersData[\s\S]*Wire them into Col/);
+  });
 });

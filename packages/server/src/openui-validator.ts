@@ -40,7 +40,13 @@ export function validateOpenUiDocument(source: string): void {
     errors.push(`Unresolved references: ${result.meta.unresolved.join(', ')}.`);
   }
   if (result.meta.orphaned.length > 0) {
-    errors.push(`Orphaned statements: ${result.meta.orphaned.join(', ')}.`);
+    errors.push(
+      `Orphaned statements: ${result.meta.orphaned.join(', ')}. ` +
+        'These names are defined but never referenced from root ' +
+        '(e.g. usersData unused by Table/Col/Stack). ' +
+        'Wire them into Col/Table/Stack children, or delete them. ' +
+        'Call nuwax_get_openui_reference with profile=dashboard for a minimal table example.',
+    );
   }
 
   if (errors.length > 0) throw new OpenUiDocumentError(errors);

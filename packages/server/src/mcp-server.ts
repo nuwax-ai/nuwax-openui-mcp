@@ -7,7 +7,9 @@ import {
   OPENUI_REFERENCE_TOOL_NAME,
   OPENUI_SCHEMA_RESOURCE_URI,
   OPENUI_TOOL_NAME,
+  OPENUI_UPDATE_GUIDE_TOOL_NAME,
   openUiReferenceInputSchema,
+  openUiUpdateGuideInputSchema,
   openUiArtifactRefSchema,
   renderOpenUiInputSchema,
 } from './contracts.js';
@@ -15,8 +17,10 @@ import { OPENUI_MCP_VERSION } from './version.js';
 import {
   getOpenUiDslSchema,
   getOpenUiReference,
+  getOpenUiUpdateGuide,
   OPENUI_TOOL_BOUNDARY,
 } from './openui-reference.js';
+import { OpenUiDocumentError } from './openui-validator.js';
 import { OpenUiPolicyError } from './policy.js';
 import type { RenderOpenUiService } from './render-service.js';
 
@@ -118,10 +122,34 @@ export function createOpenUiMcpServer(
   );
 
   server.registerTool(
+    OPENUI_UPDATE_GUIDE_TOOL_NAME,
+    {
+      title: 'Get Nuwax OpenUI update guide',
+      description:
+        'How to update an existing OpenUI artifact. Call this when the user asks to modify, change title, edit, or update a *.openui.json OpenUI UI. Explains that *.openui.json is the dedicated OpenUI Lang data source, how to reuse artifactId with nuwax_render_openui (recommended), or how to edit the file directly while keeping document.digest valid.',
+      inputSchema: openUiUpdateGuideInputSchema,
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: false,
+      },
+    },
+    async (input) => ({
+      content: [
+        {
+          type: 'text' as const,
+          text: getOpenUiUpdateGuide(input),
+        },
+      ],
+    }),
+  );
+
+  server.registerTool(
     OPENUI_TOOL_NAME,
     {
       title: 'Render Nuwax OpenUI',
-      description: `${OPENUI_TOOL_BOUNDARY}\nCreate or update a durable OpenUI artifact in the active project. Use this whenever the user asks to show, render, visualize, preview, or build a card, dashboard, chart, table, report, form, status panel, or other structured interface—even if they do not mention OpenUI. The tool writes data/{artifactId}.openui.json and returns a lightweight reference. Reuse artifactId to update an existing UI. OpenUI Lang is assignment-based and is NEVER XML/HTML/JSX: start with root = Stack(...), use positional arguments, and reference every defined variable. For complex UI or uncertain component signatures, call nuwax_get_openui_reference first. Reactive filters must handle empty initial bindings, and dynamic pie/radial charts must guard zero totals. Use inline for compact conversation UI and sidecar only for a full page.`,
+      description: `${OPENUI_TOOL_BOUNDARY}\nCreate or update a durable OpenUI artifact in the active project. Use this whenever the user asks to show, render, visualize, preview, or build a card, dashboard, chart, table, report, form, status panel, or other structured interface—even if they do not mention OpenUI. The tool writes data/{artifactId}.openui.json (the dedicated *.openui.json OpenUI Lang data source) and returns a lightweight reference. Reuse artifactId to update an existing UI. Do not invent bare .openui paths. OpenUI Lang is assignment-based and is NEVER XML/HTML/JSX: start with root = Stack(...), use positional arguments, and reference every defined variable (orphaned names like unused usersData are rejected). For complex UI or uncertain component signatures, call ${OPENUI_REFERENCE_TOOL_NAME} first. Before modifying an existing artifact, call ${OPENUI_UPDATE_GUIDE_TOOL_NAME}. Reactive filters must handle empty initial bindings, and dynamic pie/radial charts must guard zero totals. Use inline for compact conversation UI and sidecar only for a full page.`,
       inputSchema: renderOpenUiInputSchema,
       outputSchema: openUiArtifactRefSchema,
       annotations: {
@@ -138,7 +166,10 @@ export function createOpenUiMcpServer(
           content: [
             {
               type: 'text' as const,
-              text: `OpenUI ${artifact.presentation.mode} artifact ${artifact.operation}: ${artifact.path}`,
+              text:
+                `OpenUI ${artifact.presentation.mode} artifact ${artifact.operation}: ${artifact.path}. ` +
+                `This *.openui.json file is the OpenUI Lang data source. ` +
+                `To update later, call ${OPENUI_UPDATE_GUIDE_TOOL_NAME} then reuse artifactId ${artifact.artifactId} with ${OPENUI_TOOL_NAME} (or edit the file while keeping document.digest valid).`,
             },
           ],
           structuredContent: artifact,
@@ -150,12 +181,17 @@ export function createOpenUiMcpServer(
             : error instanceof Error
               ? error.message
               : 'Unknown OpenUI validation error.';
+        const orphanHint =
+          error instanceof OpenUiDocumentError &&
+          error.details.some((detail) => detail.includes('Orphaned statements'))
+            ? ''
+            : `\nOpenUI Lang is not XML/HTML/JSX. Call ${OPENUI_REFERENCE_TOOL_NAME} with the closest profile, then retry once using root = Stack(...) and positional arguments.`;
         return {
           isError: true,
           content: [
             {
               type: 'text' as const,
-              text: `${message}\nOpenUI Lang is not XML/HTML/JSX. Call ${OPENUI_REFERENCE_TOOL_NAME} with the closest profile, then retry once using root = Stack(...) and positional arguments.`,
+              text: `${message}${orphanHint}`,
             },
           ],
           _meta:

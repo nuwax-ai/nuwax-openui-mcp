@@ -6,6 +6,8 @@ export const OPENUI_REF_SCHEMA_VERSION = 'nuwax.openui-ref/v1' as const;
 export const OPENUI_LANG_VERSION = '0.5' as const;
 export const OPENUI_TOOL_NAME = 'nuwax_render_openui' as const;
 export const OPENUI_REFERENCE_TOOL_NAME = 'nuwax_get_openui_reference' as const;
+export const OPENUI_UPDATE_GUIDE_TOOL_NAME =
+  'nuwax_get_openui_update_guide' as const;
 export const OPENUI_AUTHORING_PROMPT_NAME = 'nuwax_openui_authoring' as const;
 export const OPENUI_SCHEMA_RESOURCE_URI = 'nuwax://openui/schema/v0.5' as const;
 export const OPENUI_GUIDE_RESOURCE_URI =
@@ -23,6 +25,26 @@ export const openUiReferenceInputSchema = z.object({
     .default('basic')
     .describe(
       'Component reference to return: basic for cards/content, dashboard for tables/charts, form for inputs/actions, all only when the other profiles are insufficient.',
+    ),
+});
+
+/**
+ * 更新已有 OpenUI Artifact 前的指引工具入参。
+ * artifactId 可选：传入后文案会嵌入该 ID 的示例调用片段。
+ */
+export const openUiUpdateGuideInputSchema = z.object({
+  artifactId: z
+    .string()
+    .uuid()
+    .optional()
+    .describe(
+      'Optional existing artifact UUID from data/{artifactId}.openui.json or a prior nuwax.openui-ref. When set, the guide embeds this ID in the update example.',
+    ),
+  intent: z
+    .enum(['title', 'source', 'presentation', 'general'])
+    .default('general')
+    .describe(
+      'What the user wants to change: title for visible title only, source for OpenUI Lang body, presentation for inline/sidecar, general for any update.',
     ),
 });
 
@@ -153,6 +175,7 @@ export const openUiArtifactRefSchema = z.object({
 
 export type RenderOpenUiInput = z.infer<typeof renderOpenUiInputSchema>;
 export type OpenUiReferenceInput = z.infer<typeof openUiReferenceInputSchema>;
+export type OpenUiUpdateGuideInput = z.infer<typeof openUiUpdateGuideInputSchema>;
 export type OpenUiArtifact = z.infer<typeof openUiArtifactSchema>;
 export type OpenUiFile = z.infer<typeof openUiFileSchema>;
 export type OpenUiArtifactRef = z.infer<typeof openUiArtifactRefSchema>;
