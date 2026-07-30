@@ -97,9 +97,7 @@ describe('nuwax-openui-mcp routing surface', () => {
       expect(description).toMatch(/sidecar/i);
       expect(description).not.toContain('nuwax_validate_openui');
       expect(description).toMatch(/MUST call it|ONLY tool that publishes/i);
-      expect(description).toMatch(
-        /NEVER tell the user|planning.*NOT enough/i,
-      );
+      expect(description).toMatch(/NEVER tell the user|planning.*NOT enough/i);
       // 嵌入的完整 payload 示例以 inline 为默认锚点；sidecar 仅在文案中说明。
       expect(description).toContain('"mode":"inline"');
       expect(description).toContain('"mode":"sidecar"');
