@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.3.4
+
+- **Force render after validate (fix false "already rendered").** Host shows
+  inline/sidecar UI only from a successful `nuwax_render_openui` tool result.
+  Validate success text now states it did NOT publish or open Host UI and that
+  the agent MUST call `nuwax_render_openui` next (sidecar needs
+  `mode:"sidecar"` + `autoOpen:true`). Server `instructions`, tool boundary,
+  authoring hints, and update guide all state that validate / update_guide /
+  hand-editing `*.openui.json` alone never opens conversation UI.
+
 ## 0.3.3
 
 - **Fewer authoring mistakes, higher first-try success.** Add a read-only

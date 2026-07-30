@@ -81,6 +81,8 @@ describe('getOpenUiUpdateGuide', () => {
     expect(guide).toContain('document.digest');
     expect(guide).toContain('sha256:');
     expect(guide).toContain('Direct edit');
+    expect(guide).toContain('file-tree preview only');
+    expect(guide).toMatch(/MUST call nuwax_render_openui/i);
     expect(guide).not.toMatch(/prohibit|forbidden|do not edit|never edit/i);
   });
 

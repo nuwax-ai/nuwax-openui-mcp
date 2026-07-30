@@ -44,6 +44,13 @@ function toolErrorText(result: {
   return block?.text ?? '';
 }
 
+/** 从 callTool 结果取出首段 text content。 */
+function toolText(result: {
+  content?: Array<{ type: string; text?: string }>;
+}): string {
+  return toolErrorText(result);
+}
+
 describe('nuwax-openui-mcp routing surface', () => {
   it('sends capability-quadrant routing instructions during initialize', async () => {
     const { client, close } = await createConnectedPair();
@@ -63,6 +70,10 @@ describe('nuwax-openui-mcp routing surface', () => {
       expect(instructions).toContain('.html');
       expect(instructions).toMatch(/skill/);
       expect(instructions).toContain('nuwax_ask_question');
+      // 可见性前提：validate alone never；sidecar 需 autoOpen。
+      expect(instructions).toMatch(/validate alone never/i);
+      expect(instructions).toContain('nuwax_validate_openui');
+      expect(instructions).toContain('autoOpen');
     } finally {
       await close();
     }
@@ -97,6 +108,8 @@ describe('nuwax-openui-mcp routing surface', () => {
       expect(description).toContain('"autoOpen":true');
       // 紧凑 authoring 指引：禁对齐空格填充。
       expect(description).toMatch(/no space\/tab padding|padding/i);
+      // 没有 render 工具结果 = 用户看不到 UI。
+      expect(description).toMatch(/sees NO UI|ONLY after a successful/i);
     } finally {
       await close();
     }
@@ -112,6 +125,9 @@ describe('nuwax-openui-mcp routing surface', () => {
       expect(validateTool).toBeDefined();
       expect(validateTool?.annotations?.readOnlyHint).toBe(true);
       expect(validateTool?.description).toMatch(/dry-run|without writing/i);
+      expect(validateTool?.description).toMatch(
+        /Does NOT open Host UI|MUST call nuwax_render_openui/i,
+      );
     } finally {
       await close();
     }
@@ -125,6 +141,10 @@ describe('nuwax-openui-mcp routing surface', () => {
         arguments: { source: RENDER_EXAMPLE_PAYLOAD.document.source },
       });
       expect(ok.structuredContent).toMatchObject({ valid: true });
+      const okText = toolText(ok);
+      expect(okText).toMatch(/did NOT/i);
+      expect(okText).toMatch(/MUST call/i);
+      expect(okText).toContain('nuwax_render_openui');
 
       const bad = await client.callTool({
         name: 'nuwax_validate_openui',

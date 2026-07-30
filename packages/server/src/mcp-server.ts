@@ -159,7 +159,7 @@ export function createOpenUiMcpServer(
     OPENUI_VALIDATE_TOOL_NAME,
     {
       title: 'Validate Nuwax OpenUI Source',
-      description: `Dry-run validation for an OpenUI Lang document.source WITHOUT writing any file or artifact. Use this to catch syntax, root/Stack, orphaned-statement, unresolved-reference, and reactive-filter errors BEFORE calling ${OPENUI_TOOL_NAME}, so the render call succeeds on the first try. Returns valid: true, or valid: false with actionable error messages telling you exactly what to fix.`,
+      description: `CRITICAL: Does NOT open Host UI (inline or sidecar). After valid:true you MUST call ${OPENUI_TOOL_NAME}—validate alone never shows anything to the user. Dry-run validation for an OpenUI Lang document.source WITHOUT writing any file or artifact. Use this to catch syntax, root/Stack, orphaned-statement, unresolved-reference, and reactive-filter errors BEFORE calling ${OPENUI_TOOL_NAME}, so the render call succeeds on the first try. Returns valid: true, or valid: false with actionable error messages telling you exactly what to fix.`,
       inputSchema: openUiValidateInputSchema,
       annotations: {
         readOnlyHint: true,
@@ -172,7 +172,16 @@ export function createOpenUiMcpServer(
       try {
         validateOpenUiDocument(source);
         return {
-          content: [{ type: 'text' as const, text: 'OpenUI source is valid.' }],
+          content: [
+            {
+              type: 'text' as const,
+              // 打断「valid = 已渲染」幻觉：Host 只消费 render 工具结果才会出 UI。
+              text:
+                `OpenUI source is valid. This did NOT publish or open any Host UI (inline or sidecar). ` +
+                `You MUST call ${OPENUI_TOOL_NAME} next so the user can see the interface. ` +
+                `For full-screen / "don't put it in the chat bubble", use presentation.mode="sidecar" and autoOpen=true.`,
+            },
+          ],
           structuredContent: { valid: true as const, errors: [] as string[] },
         };
       } catch (error) {
