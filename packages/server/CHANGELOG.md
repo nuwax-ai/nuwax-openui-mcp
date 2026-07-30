@@ -33,9 +33,9 @@
   needing arbitrary JavaScript / external scripts / raw HTML—those belong to
   ordinary code/files. (3) Gray zone: ask whether the deliverable is ONE
   self-contained interface and whether it can be expressed with structured data
-  + standard components without arbitrary JS or pixel-level custom layout; if
-  both are yes use OpenUI, and never silently fall back to a bare `*.html` file
-  because the request sounds ambiguous.
+  - standard components without arbitrary JS or pixel-level custom layout; if
+    both are yes use OpenUI, and never silently fall back to a bare `*.html` file
+    because the request sounds ambiguous.
 - **Class-level exclusions, not skill-name enumeration.** The "no bare HTML / no
   SVG or PNG chart file / no frontend, dataviz, or charting code-generation
   skill" rule is phrased as an exclusion of a whole class of output paths, not a

@@ -106,7 +106,9 @@ describe('nuwax-openui-mcp routing surface', () => {
     const { client, close } = await createConnectedPair();
     try {
       const { tools } = await client.listTools();
-      const validateTool = tools.find((t) => t.name === 'nuwax_validate_openui');
+      const validateTool = tools.find(
+        (t) => t.name === 'nuwax_validate_openui',
+      );
       expect(validateTool).toBeDefined();
       expect(validateTool?.annotations?.readOnlyHint).toBe(true);
       expect(validateTool?.description).toMatch(/dry-run|without writing/i);
@@ -133,9 +135,9 @@ describe('nuwax-openui-mcp routing surface', () => {
       });
       expect(bad.isError).toBe(true);
       expect(bad.structuredContent).toMatchObject({ valid: false });
-      const errs = (
-        bad.structuredContent as { errors: string[] }
-      ).errors.join(' ');
+      const errs = (bad.structuredContent as { errors: string[] }).errors.join(
+        ' ',
+      );
       expect(errs).toContain('Orphaned');
       expect(errs).toContain('unused');
     } finally {
