@@ -6,8 +6,11 @@ import { createOpenUiMcpServer } from './mcp-server.js';
 import type { RenderOpenUiService } from './render-service.js';
 import type { OpenUiArtifactRef } from './contracts.js';
 import {
+  OPENUI_REFERENCE_TOOL_NAME,
   OPENUI_SOURCE_MAX_CHARS,
   OPENUI_SOURCE_TOO_BIG_MESSAGE,
+  OPENUI_TOOL_NAME,
+  OPENUI_UPDATE_GUIDE_TOOL_NAME,
   renderOpenUiInputSchema,
 } from './contracts.js';
 import { RENDER_EXAMPLE_PAYLOAD } from './openui-reference.js';
@@ -50,7 +53,7 @@ describe('nuwax-openui-mcp routing surface', () => {
     try {
       const instructions = client.getInstructions();
       expect(instructions).toBeTruthy();
-      expect(instructions).toContain('nuwax_render_openui');
+      expect(instructions).toContain(OPENUI_TOOL_NAME);
       // 首选象限：单个自包含界面（锁概念，不锁枚举词）。
       expect(instructions).toMatch(/self-contained/i);
       expect(instructions).toContain('自包含');
@@ -77,7 +80,7 @@ describe('nuwax-openui-mcp routing surface', () => {
     const { client, close } = await createConnectedPair();
     try {
       const { tools } = await client.listTools();
-      const renderTool = tools.find((t) => t.name === 'nuwax_render_openui');
+      const renderTool = tools.find((t) => t.name === OPENUI_TOOL_NAME);
       expect(renderTool).toBeDefined();
       const description = renderTool?.description ?? '';
       // 首选象限：单个自包含界面。
@@ -120,9 +123,9 @@ describe('nuwax-openui-mcp routing surface', () => {
       ).toBeUndefined();
       expect(tools.map((t) => t.name)).toEqual(
         expect.arrayContaining([
-          'nuwax_render_openui',
-          'nuwax_get_openui_reference',
-          'nuwax_get_openui_update_guide',
+          OPENUI_TOOL_NAME,
+          OPENUI_REFERENCE_TOOL_NAME,
+          OPENUI_UPDATE_GUIDE_TOOL_NAME,
         ]),
       );
     } finally {
@@ -136,7 +139,7 @@ describe('nuwax-openui-mcp routing surface', () => {
       const oversized = 'x'.repeat(OPENUI_SOURCE_MAX_CHARS + 1);
 
       const renderResult = await client.callTool({
-        name: 'nuwax_render_openui',
+        name: OPENUI_TOOL_NAME,
         arguments: {
           ...RENDER_EXAMPLE_PAYLOAD,
           document: {
@@ -149,7 +152,7 @@ describe('nuwax-openui-mcp routing surface', () => {
       const renderText = toolErrorText(renderResult);
       expect(renderText).toContain(OPENUI_SOURCE_TOO_BIG_MESSAGE);
       expect(renderText).toMatch(/alignment|padding/i);
-      expect(renderText).toContain('nuwax_render_openui');
+      expect(renderText).toContain(OPENUI_TOOL_NAME);
     } finally {
       await close();
     }

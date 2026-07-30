@@ -1,18 +1,23 @@
 import { z } from 'zod';
 
+import { OPENUI_MCP_VERSION_SUFFIX } from './version.js';
+
 export const OPENUI_SCHEMA_VERSION = 'nuwax.openui/v1' as const;
 export const OPENUI_FILE_SCHEMA_VERSION = 'nuwax.openui-file/v1' as const;
 export const OPENUI_REF_SCHEMA_VERSION = 'nuwax.openui-ref/v1' as const;
 export const OPENUI_LANG_VERSION = '0.5' as const;
-export const OPENUI_TOOL_NAME = 'nuwax_render_openui' as const;
+/**
+ * 工具名在基名后追加版本后缀（如 `nuwax_render_openui_v0_3_6`），让 MCP 客户端
+ * 直接看到版本指纹；后缀取自 package.json，版本永远联动。资源 / prompt 名称不带后缀。
+ */
+export const OPENUI_TOOL_NAME = `nuwax_render_openui${OPENUI_MCP_VERSION_SUFFIX}`;
 /**
  * @deprecated 0.3.5 起不再注册为 MCP 工具（易导致 Agent 停在 dry-run / 幻觉已渲染）。
  * 常量保留供旧文档与迁移对照；校验由 `nuwax_render_openui` 内部完成。
  */
 export const OPENUI_VALIDATE_TOOL_NAME = 'nuwax_validate_openui' as const;
-export const OPENUI_REFERENCE_TOOL_NAME = 'nuwax_get_openui_reference' as const;
-export const OPENUI_UPDATE_GUIDE_TOOL_NAME =
-  'nuwax_get_openui_update_guide' as const;
+export const OPENUI_REFERENCE_TOOL_NAME = `nuwax_get_openui_reference${OPENUI_MCP_VERSION_SUFFIX}`;
+export const OPENUI_UPDATE_GUIDE_TOOL_NAME = `nuwax_get_openui_update_guide${OPENUI_MCP_VERSION_SUFFIX}`;
 export const OPENUI_AUTHORING_PROMPT_NAME = 'nuwax_openui_authoring' as const;
 export const OPENUI_SCHEMA_RESOURCE_URI = 'nuwax://openui/schema/v0.5' as const;
 export const OPENUI_GUIDE_RESOURCE_URI =
@@ -201,6 +206,14 @@ export const openUiArtifactSchema = z.object({
 export const openUiFileSchema = z.object({
   type: z.literal('nuwax.openui-file'),
   schemaVersion: z.literal(OPENUI_FILE_SCHEMA_VERSION),
+  // 0.3.6 起：写入时由 render-service 填入 MCP 包版本，作为可追溯的版本指纹。
+  // 设为 optional，让 0.3.6 之前落盘的旧 artifact 仍能正常加载（无此字段）。
+  mcpVersion: z
+    .string()
+    .optional()
+    .describe(
+      'MCP server package version that wrote this artifact (e.g. "0.3.6"). Informational version fingerprint; not consumed by the renderer.',
+    ),
   artifactId: z.string().uuid(),
   title: z.string(),
   presentation: z.object({

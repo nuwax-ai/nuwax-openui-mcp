@@ -12,6 +12,7 @@ import {
 import type { ArtifactStore } from './artifact-store.js';
 import { validateOpenUiDocument } from './openui-validator.js';
 import { enforceOpenUiPolicy } from './policy.js';
+import { OPENUI_MCP_VERSION } from './version.js';
 
 function createDigest(source: string): string {
   return `sha256:${createHash('sha256').update(source).digest('hex')}`;
@@ -32,6 +33,7 @@ export class RenderOpenUiService {
     const artifact: OpenUiFile = {
       type: 'nuwax.openui-file',
       schemaVersion: OPENUI_FILE_SCHEMA_VERSION,
+      mcpVersion: OPENUI_MCP_VERSION,
       artifactId,
       title: input.title,
       presentation: input.presentation,

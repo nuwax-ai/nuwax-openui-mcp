@@ -43,3 +43,11 @@ export function resolveOpenUiMcpVersion(
 
 /** MCP serverInfo / CLI `--version` 共用的包版本（与 package.json 保持一致） */
 export const OPENUI_MCP_VERSION = resolveOpenUiMcpVersion();
+
+/**
+ * MCP 工具名版本后缀。
+ * MCP 工具名规范为 `^[a-zA-Z0-9_-]{1,64}$`，禁用点号，故把版本号里的 `.`
+ * 换成 `_` 并加 `v` 前缀（例如 `0.3.6` → `_v0_3_6`）。工具名据此拼接，
+ * 让版本"指纹"在 MCP 客户端直接可见，且永远与 package.json 联动。
+ */
+export const OPENUI_MCP_VERSION_SUFFIX = `_v${OPENUI_MCP_VERSION.replace(/\./g, '_')}`;

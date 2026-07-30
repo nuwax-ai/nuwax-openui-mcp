@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.3.6
+
+- **Version-suffixed MCP tool names (version fingerprint).** The three registered
+  tools now carry the package version as a suffix — e.g. `nuwax_render_openui_v0_3_6`,
+  `nuwax_get_openui_reference_v0_3_6`, `nuwax_get_openui_update_guide_v0_3_6` — so the
+  running version is visible directly in any MCP client's tool list. The suffix is
+  derived from `package.json` (dots → underscores, `v` prefix; MCP tool names forbid
+  dots) and therefore stays in lockstep with every release. Resource and prompt names
+  are unchanged.
+- **Record the MCP version in each artifact.** `data/{artifactId}.openui.json` now
+  carries a top-level `mcpVersion` (e.g. `"0.3.6"`) written by `nuwax_render_openui`,
+  giving every artifact a traceable version fingerprint. The field is optional on the
+  file schema, so artifacts written by 0.3.5 and earlier still load.
+- **Keep the package versions aligned.** The workspace-root `package.json` (which had
+  lagged at `0.3.0`) and the `@nuwax-ai/openui-mcp` server package both move to
+  `0.3.6`; `OPENUI_MCP_VERSION`, the CLI `--version`, the MCP `serverInfo.version`,
+  the tool-name suffix, and the on-disk `mcpVersion` all resolve from the same
+  `package.json`.
+
 ## 0.3.5
 
 - **Remove `nuwax_validate_openui` from the MCP tool surface.** Dry-run validate
