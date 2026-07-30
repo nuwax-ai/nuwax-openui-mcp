@@ -4,13 +4,15 @@ import {
 } from './openui-assets.js';
 import {
   OPENUI_LANG_VERSION,
-  OPENUI_REFERENCE_TOOL_NAME,
   OPENUI_SCHEMA_VERSION,
-  OPENUI_TOOL_NAME,
-  OPENUI_UPDATE_GUIDE_TOOL_NAME,
   type OpenUiReferenceInput,
   type OpenUiUpdateGuideInput,
 } from './contracts.js';
+import {
+  OPENUI_REFERENCE_TOOL_NAME,
+  OPENUI_TOOL_NAME,
+  OPENUI_UPDATE_GUIDE_TOOL_NAME,
+} from './tool-names.js';
 
 /**
  * 完整、可校验的 render payload 示例（默认 inline，避免模型把所有看板做成 sidecar）。

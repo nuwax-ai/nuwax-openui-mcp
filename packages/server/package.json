@@ -1,6 +1,6 @@
 {
   "name": "@nuwax-ai/openui-mcp",
-  "version": "0.3.7",
+  "version": "0.3.8",
   "description": "Durable file-based OpenUI artifacts over MCP for Nuwax.",
   "type": "module",
   "license": "Apache-2.0",
@@ -23,6 +23,10 @@
     "./contracts": {
       "types": "./dist/server/contracts.d.ts",
       "import": "./dist/server/contracts.js"
+    },
+    "./tool-names": {
+      "types": "./dist/server/tool-names.d.ts",
+      "import": "./dist/server/tool-names.js"
     },
     "./compact-theme": {
       "types": "./dist/server/compactTheme.d.ts",

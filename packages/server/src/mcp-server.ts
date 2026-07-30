@@ -4,15 +4,17 @@ import { z } from 'zod';
 import {
   OPENUI_AUTHORING_PROMPT_NAME,
   OPENUI_GUIDE_RESOURCE_URI,
-  OPENUI_REFERENCE_TOOL_NAME,
   OPENUI_SCHEMA_RESOURCE_URI,
-  OPENUI_TOOL_NAME,
-  OPENUI_UPDATE_GUIDE_TOOL_NAME,
   openUiReferenceInputSchema,
   openUiUpdateGuideInputSchema,
   openUiArtifactRefSchema,
   renderOpenUiInputSchema,
 } from './contracts.js';
+import {
+  OPENUI_REFERENCE_TOOL_NAME,
+  OPENUI_TOOL_NAME,
+  OPENUI_UPDATE_GUIDE_TOOL_NAME,
+} from './tool-names.js';
 import { OPENUI_MCP_VERSION } from './version.js';
 import {
   getOpenUiDslSchema,

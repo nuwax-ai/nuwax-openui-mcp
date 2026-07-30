@@ -6,13 +6,15 @@ import { createOpenUiMcpServer } from './mcp-server.js';
 import type { RenderOpenUiService } from './render-service.js';
 import type { OpenUiArtifactRef } from './contracts.js';
 import {
-  OPENUI_REFERENCE_TOOL_NAME,
   OPENUI_SOURCE_MAX_CHARS,
   OPENUI_SOURCE_TOO_BIG_MESSAGE,
-  OPENUI_TOOL_NAME,
-  OPENUI_UPDATE_GUIDE_TOOL_NAME,
   renderOpenUiInputSchema,
 } from './contracts.js';
+import {
+  OPENUI_REFERENCE_TOOL_NAME,
+  OPENUI_TOOL_NAME,
+  OPENUI_UPDATE_GUIDE_TOOL_NAME,
+} from './tool-names.js';
 import { RENDER_EXAMPLE_PAYLOAD } from './openui-reference.js';
 import { validateOpenUiDocument } from './openui-validator.js';
 

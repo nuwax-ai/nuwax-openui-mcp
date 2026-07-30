@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.8
+
+- **Make `/contracts` browser-safe.** Tool names that depend on reading
+  `package.json` via `node:fs` moved to `tool-names.ts` (also exported as
+  `@nuwax-ai/openui-mcp/tool-names` and from the package root). Hosts can import
+  `@nuwax-ai/openui-mcp/contracts` without pulling `node:fs` / `node:path` /
+  `node:url` into the Webpack bundle.
+
 ## 0.3.7
 
 - **Render tool text is the `nuwax.openui-ref` JSON.** `nuwax_render_openui`

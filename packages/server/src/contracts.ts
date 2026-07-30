@@ -1,6 +1,9 @@
 import { z } from 'zod';
 
-import { OPENUI_MCP_VERSION_SUFFIX } from './version.js';
+/**
+ * 本模块可被浏览器 Host 安全 import（无 `node:*`）。
+ * 带版本后缀的 MCP 工具名见 `tool-names.ts`（仅 Node / MCP server）。
+ */
 
 /** render 入参 / legacy in-memory artifact：`nuwax.openui/v1` */
 export const OPENUI_SCHEMA_VERSION = 'nuwax.openui/v1' as const;
@@ -63,18 +66,6 @@ export function isOpenUiPayloadType(type: unknown): boolean {
   );
 }
 
-/**
- * 工具名在基名后追加版本后缀（如 `nuwax_render_openui_v0_3_6`），让 MCP 客户端
- * 直接看到版本指纹；后缀取自 package.json，版本永远联动。资源 / prompt 名称不带后缀。
- */
-export const OPENUI_TOOL_NAME = `nuwax_render_openui${OPENUI_MCP_VERSION_SUFFIX}`;
-/**
- * @deprecated 0.3.5 起不再注册为 MCP 工具（易导致 Agent 停在 dry-run / 幻觉已渲染）。
- * 常量保留供旧文档与迁移对照；校验由 `nuwax_render_openui` 内部完成。
- */
-export const OPENUI_VALIDATE_TOOL_NAME = 'nuwax_validate_openui' as const;
-export const OPENUI_REFERENCE_TOOL_NAME = `nuwax_get_openui_reference${OPENUI_MCP_VERSION_SUFFIX}`;
-export const OPENUI_UPDATE_GUIDE_TOOL_NAME = `nuwax_get_openui_update_guide${OPENUI_MCP_VERSION_SUFFIX}`;
 export const OPENUI_AUTHORING_PROMPT_NAME = 'nuwax_openui_authoring' as const;
 export const OPENUI_SCHEMA_RESOURCE_URI = 'nuwax://openui/schema/v0.5' as const;
 export const OPENUI_GUIDE_RESOURCE_URI =
@@ -87,9 +78,10 @@ export const OPENUI_SOURCE_MAX_CHARS = 100_000 as const;
  * source 超限时的可操作错误文案。
  * 必须挂在 Zod `.max(..., { error })` 上：MCP SDK 在 handler 之前校验
  * inputSchema，handler 内的 catch 永远收不到 too_big。
+ * 文案只提工具基名，避免本模块依赖 `tool-names` / `version`（浏览器 bundler 会炸）。
  */
 export const OPENUI_SOURCE_TOO_BIG_MESSAGE =
-  `OpenUI source exceeds the ${OPENUI_SOURCE_MAX_CHARS}-character limit. This is almost always caused by long runs of spaces/tabs added for visual alignment inside a string literal. Remove ALL alignment padding (write each statement as one compact line), then retry ${OPENUI_TOOL_NAME}.` as const;
+  `OpenUI source exceeds the ${OPENUI_SOURCE_MAX_CHARS}-character limit. This is almost always caused by long runs of spaces/tabs added for visual alignment inside a string literal. Remove ALL alignment padding (write each statement as one compact line), then retry nuwax_render_openui.` as const;
 
 export const openUiReferenceInputSchema = z.object({
   format: z
