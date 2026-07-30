@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.3.5
+
+- **Remove `nuwax_validate_openui` from the MCP tool surface.** Dry-run validate
+  tempted agents to stop after "valid" or to claim the UI was rendered without
+  calling `nuwax_render_openui`. Source validation remains inside
+  `nuwax_render_openui` (same `validateOpenUiDocument` path). The
+  `OPENUI_VALIDATE_TOOL_NAME` / `openUiValidateInputSchema` exports stay as
+  deprecated compatibility symbols only.
+- **Anti-hallucination copy.** Server `instructions`, tool boundary, and render
+  authoring hints now state: never tell the user the UI was created / opened /
+  auto-opened until a successful `nuwax_render_openui` tool result is in hand;
+  drafting OpenUI Lang in assistant text alone does nothing.
+
 ## 0.3.4
 
 - **Force render after validate (fix false "already rendered").** Host shows

@@ -5,6 +5,10 @@ export const OPENUI_FILE_SCHEMA_VERSION = 'nuwax.openui-file/v1' as const;
 export const OPENUI_REF_SCHEMA_VERSION = 'nuwax.openui-ref/v1' as const;
 export const OPENUI_LANG_VERSION = '0.5' as const;
 export const OPENUI_TOOL_NAME = 'nuwax_render_openui' as const;
+/**
+ * @deprecated 0.3.5 起不再注册为 MCP 工具（易导致 Agent 停在 dry-run / 幻觉已渲染）。
+ * 常量保留供旧文档与迁移对照；校验由 `nuwax_render_openui` 内部完成。
+ */
 export const OPENUI_VALIDATE_TOOL_NAME = 'nuwax_validate_openui' as const;
 export const OPENUI_REFERENCE_TOOL_NAME = 'nuwax_get_openui_reference' as const;
 export const OPENUI_UPDATE_GUIDE_TOOL_NAME =
@@ -23,7 +27,7 @@ export const OPENUI_SOURCE_MAX_CHARS = 100_000 as const;
  * inputSchema，handler 内的 catch 永远收不到 too_big。
  */
 export const OPENUI_SOURCE_TOO_BIG_MESSAGE =
-  `OpenUI source exceeds the ${OPENUI_SOURCE_MAX_CHARS}-character limit. This is almost always caused by long runs of spaces/tabs added for visual alignment inside a string literal. Remove ALL alignment padding (write each statement as one compact line), then re-validate with ${OPENUI_VALIDATE_TOOL_NAME} before retrying.` as const;
+  `OpenUI source exceeds the ${OPENUI_SOURCE_MAX_CHARS}-character limit. This is almost always caused by long runs of spaces/tabs added for visual alignment inside a string literal. Remove ALL alignment padding (write each statement as one compact line), then retry ${OPENUI_TOOL_NAME}.` as const;
 
 export const openUiReferenceInputSchema = z.object({
   format: z
@@ -67,10 +71,8 @@ const bindingSchema = z.object({
 });
 
 /**
- * render 前的 dry-run 校验工具入参。
- * 只校验 document.source（OpenUI Lang 正文），不写文件、不落 artifact，
- * 让 Agent 在 render 之前就能发现并修正语法 / 可达性 / 反应式 filter 错误，
- * 把「写错→render 报错→重试」改成「自查→修→一次 render 成功」。
+ * @deprecated 0.3.5 起 MCP 不再暴露 validate 工具；schema 仅保留兼容导出。
+ * 正式路径请直接调用 `nuwax_render_openui`（服务端会校验 source）。
  */
 export const openUiValidateInputSchema = z.object({
   source: z
@@ -78,7 +80,7 @@ export const openUiValidateInputSchema = z.object({
     .min(1)
     .max(OPENUI_SOURCE_MAX_CHARS, { error: OPENUI_SOURCE_TOO_BIG_MESSAGE })
     .describe(
-      'The OpenUI Lang document source to validate (the same string you would pass to nuwax_render_openui document.source). Must start with root = Stack(...), use positional args, and reference every defined variable. Returns {valid:true} or {valid:false, errors:[...actionable messages]}.',
+      'Deprecated. Prefer nuwax_render_openui; OpenUI Lang document.source (root = Stack(...), positional args, every non-root variable reachable from root).',
     ),
 });
 

@@ -44,13 +44,6 @@ function toolErrorText(result: {
   return block?.text ?? '';
 }
 
-/** 从 callTool 结果取出首段 text content。 */
-function toolText(result: {
-  content?: Array<{ type: string; text?: string }>;
-}): string {
-  return toolErrorText(result);
-}
-
 describe('nuwax-openui-mcp routing surface', () => {
   it('sends capability-quadrant routing instructions during initialize', async () => {
     const { client, close } = await createConnectedPair();
@@ -70,9 +63,10 @@ describe('nuwax-openui-mcp routing surface', () => {
       expect(instructions).toContain('.html');
       expect(instructions).toMatch(/skill/);
       expect(instructions).toContain('nuwax_ask_question');
-      // 可见性前提：validate alone never；sidecar 需 autoOpen。
-      expect(instructions).toMatch(/validate alone never/i);
-      expect(instructions).toContain('nuwax_validate_openui');
+      // 可见性前提：必须拿到 render 工具结果；禁止幻觉已打开；sidecar 需 autoOpen。
+      expect(instructions).toMatch(/Anti-hallucination|NEVER claim/i);
+      expect(instructions).toMatch(/NO separate validate tool/i);
+      expect(instructions).not.toContain('nuwax_validate_openui');
       expect(instructions).toContain('autoOpen');
     } finally {
       await close();
@@ -98,10 +92,14 @@ describe('nuwax-openui-mcp routing surface', () => {
       // 既有边界不回归。
       expect(description).toContain('nuwax_ask_question');
       expect(description).toContain('*.openui.json');
-      // delivery 指引：sidecar + autoOpen 正向映射，及指向 validate 工具。
+      // delivery 指引：sidecar + autoOpen；无独立 validate 工具。
       expect(description).toContain('autoOpen');
       expect(description).toMatch(/sidecar/i);
-      expect(description).toContain('nuwax_validate_openui');
+      expect(description).not.toContain('nuwax_validate_openui');
+      expect(description).toMatch(/MUST call it|ONLY tool that publishes/i);
+      expect(description).toMatch(
+        /NEVER tell the user|planning.*NOT enough/i,
+      );
       // 嵌入的完整 payload 示例以 inline 为默认锚点；sidecar 仅在文案中说明。
       expect(description).toContain('"mode":"inline"');
       expect(description).toContain('"mode":"sidecar"');
@@ -115,69 +113,29 @@ describe('nuwax-openui-mcp routing surface', () => {
     }
   });
 
-  it('registers nuwax_validate_openui as a read-only dry-run tool', async () => {
+  it('does not register nuwax_validate_openui (removed in 0.3.5)', async () => {
     const { client, close } = await createConnectedPair();
     try {
       const { tools } = await client.listTools();
-      const validateTool = tools.find(
-        (t) => t.name === 'nuwax_validate_openui',
-      );
-      expect(validateTool).toBeDefined();
-      expect(validateTool?.annotations?.readOnlyHint).toBe(true);
-      expect(validateTool?.description).toMatch(/dry-run|without writing/i);
-      expect(validateTool?.description).toMatch(
-        /Does NOT open Host UI|MUST call nuwax_render_openui/i,
+      expect(
+        tools.find((t) => t.name === 'nuwax_validate_openui'),
+      ).toBeUndefined();
+      expect(tools.map((t) => t.name)).toEqual(
+        expect.arrayContaining([
+          'nuwax_render_openui',
+          'nuwax_get_openui_reference',
+          'nuwax_get_openui_update_guide',
+        ]),
       );
     } finally {
       await close();
     }
   });
 
-  it('nuwax_validate_openui accepts valid source and rejects broken source with actionable errors', async () => {
-    const { client, close } = await createConnectedPair();
-    try {
-      const ok = await client.callTool({
-        name: 'nuwax_validate_openui',
-        arguments: { source: RENDER_EXAMPLE_PAYLOAD.document.source },
-      });
-      expect(ok.structuredContent).toMatchObject({ valid: true });
-      const okText = toolText(ok);
-      expect(okText).toMatch(/did NOT/i);
-      expect(okText).toMatch(/MUST call/i);
-      expect(okText).toContain('nuwax_render_openui');
-
-      const bad = await client.callTool({
-        name: 'nuwax_validate_openui',
-        arguments: {
-          source:
-            'root = Stack([table])\ntable = Table([c])\nc = Col("x", d.v)\nd = [{v: 1}]\nunused = [{v: 2}]',
-        },
-      });
-      expect(bad.isError).toBe(true);
-      expect(bad.structuredContent).toMatchObject({ valid: false });
-      const errs = (bad.structuredContent as { errors: string[] }).errors.join(
-        ' ',
-      );
-      expect(errs).toContain('Orphaned');
-      expect(errs).toContain('unused');
-    } finally {
-      await close();
-    }
-  });
-
-  it('surfaces the padding-root-cause message when source exceeds the limit via callTool', async () => {
+  it('surfaces the padding-root-cause message when source exceeds the limit via render', async () => {
     const { client, close } = await createConnectedPair();
     try {
       const oversized = 'x'.repeat(OPENUI_SOURCE_MAX_CHARS + 1);
-
-      const validateResult = await client.callTool({
-        name: 'nuwax_validate_openui',
-        arguments: { source: oversized },
-      });
-      expect(validateResult.isError).toBe(true);
-      const validateText = toolErrorText(validateResult);
-      expect(validateText).toContain(OPENUI_SOURCE_TOO_BIG_MESSAGE);
-      expect(validateText).toContain('nuwax_validate_openui');
 
       const renderResult = await client.callTool({
         name: 'nuwax_render_openui',
@@ -193,6 +151,7 @@ describe('nuwax-openui-mcp routing surface', () => {
       const renderText = toolErrorText(renderResult);
       expect(renderText).toContain(OPENUI_SOURCE_TOO_BIG_MESSAGE);
       expect(renderText).toMatch(/alignment|padding/i);
+      expect(renderText).toContain('nuwax_render_openui');
     } finally {
       await close();
     }

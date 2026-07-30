@@ -8,7 +8,6 @@ import {
   OPENUI_SCHEMA_VERSION,
   OPENUI_TOOL_NAME,
   OPENUI_UPDATE_GUIDE_TOOL_NAME,
-  OPENUI_VALIDATE_TOOL_NAME,
   type OpenUiReferenceInput,
   type OpenUiUpdateGuideInput,
 } from './contracts.js';
@@ -40,7 +39,7 @@ export const RENDER_EXAMPLE_PAYLOAD = {
 };
 
 /** 工具描述里随附的 delivery + authoring 紧凑指引（贴近示例，防空格填充）。 */
-export const RENDER_AUTHORING_HINTS = `Author document.source as compact single-line statements with no space/tab padding for alignment (padding bloats the payload past the 100000-char source limit and the call fails JSON parsing). The Host shows UI ONLY after a successful ${OPENUI_TOOL_NAME} call (returning nuwax.openui-ref)—${OPENUI_VALIDATE_TOOL_NAME} alone never opens inline or sidecar. Choose presentation.mode by intent: inline for compact in-chat UI (default example below); use sidecar with autoOpen: true only when the user wants a full-screen / standalone page / "don't put it in the chat bubble" experience—copy presentation:{"mode":"sidecar","autoOpen":true}. Example: ${JSON.stringify(RENDER_EXAMPLE_PAYLOAD)}`;
+export const RENDER_AUTHORING_HINTS = `Author document.source as compact single-line statements with no space/tab padding for alignment (padding bloats the payload past the 100000-char source limit and the call fails JSON parsing). The Host shows UI ONLY after a successful ${OPENUI_TOOL_NAME} tool result (returning nuwax.openui-ref). NEVER tell the user the UI was created/opened/auto-opened until that tool result arrives—planning, drafting source, or quoting this example is NOT enough. Choose presentation.mode by intent: inline for compact in-chat UI (default example below); use sidecar with autoOpen: true only when the user wants a full-screen / standalone page / "don't put it in the chat bubble" experience—copy presentation:{"mode":"sidecar","autoOpen":true}. Example: ${JSON.stringify(RENDER_EXAMPLE_PAYLOAD)}`;
 
 const PROFILE_FOCUS: Record<OpenUiReferenceInput['profile'], string> = {
   basic:
@@ -61,7 +60,7 @@ export const OPENUI_SERVER_INSTRUCTIONS = `## Nuwax OpenUI routing (CRITICAL)
 This server is the ONLY way to produce UI that the Nuwax Host can render inline in conversation or in a sidecar page. 本服务是 Host 唯一能在对话内 / sidecar 渲染 UI 的协议。
 
 ### Visibility prerequisite (可见性前提 — CRITICAL)
-The Host shows UI (inline OR sidecar) ONLY when you successfully call ${OPENUI_TOOL_NAME} and it returns a \`nuwax.openui-ref\`. ${OPENUI_VALIDATE_TOOL_NAME} alone never opens Host UI—validate alone never finishes the task. ${OPENUI_UPDATE_GUIDE_TOOL_NAME} and hand-editing \`*.openui.json\` also do NOT open conversation inline/sidecar (file-tree preview only). Optional flow: ${OPENUI_VALIDATE_TOOL_NAME} → you MUST then call ${OPENUI_TOOL_NAME}. Never stop after validate:true / never claim the UI is rendered until ${OPENUI_TOOL_NAME} has succeeded. For full-screen / "don't put it in the chat bubble", pass presentation.mode="sidecar" and autoOpen=true on that render call.
+The Host shows UI (inline OR sidecar) ONLY when you successfully call ${OPENUI_TOOL_NAME} and receive a tool result with \`nuwax.openui-ref\` / an artifact path. There is NO separate validate tool—${OPENUI_TOOL_NAME} validates source itself. ${OPENUI_UPDATE_GUIDE_TOOL_NAME} and hand-editing \`*.openui.json\` do NOT open conversation inline/sidecar (file-tree preview only). Anti-hallucination: NEVER claim the dashboard/UI was created, published, opened, or auto-opened unless you already have that successful ${OPENUI_TOOL_NAME} tool result in this turn. Drafting OpenUI Lang in assistant text without calling the tool does nothing for the user. For full-screen / "don't put it in the chat bubble", pass presentation.mode="sidecar" and autoOpen=true on that render call.
 
 ### Prefer ${OPENUI_TOOL_NAME} (首选象限)
 Route by intent, not by keywords. Whenever the user's underlying goal is a SINGLE, SELF-CONTAINED visual interface that presents or collects STRUCTURED information using standard components—KPI cards, charts, tables, forms, text, images—whether they ask to build a dashboard, monitoring panel, report, data-collection form, status page, or any comparable outcome, in any wording or language—you MUST call ${OPENUI_TOOL_NAME}. Do not wait for them to say "OpenUI" or to use a specific term like "dashboard"/"看板". 按意图路由：只要用户的真实目的是"用一个自包含界面呈现或收集结构化信息"（指标卡、图表、表格、表单、文本、图像等标准组件可表达的：数据看板、监控面板、报表、表单、状态页），无论措辞、无论语言、无论是否点名图表或组件，都必须走 ${OPENUI_TOOL_NAME}。For complex UI or uncertain component signatures, call ${OPENUI_REFERENCE_TOOL_NAME} first.
@@ -90,7 +89,7 @@ Ask two questions: (1) Is the deliverable ONE self-contained interface rather th
 export const OPENUI_TOOL_BOUNDARY = `## Tool Boundary (CRITICAL)
 
 - ${OPENUI_TOOL_NAME} and nuwax_ask_question are separate tools; ${OPENUI_TOOL_NAME} is not an alias for nuwax_ask_question.
-- Visibility: without a successful ${OPENUI_TOOL_NAME} tool result the user sees NO UI (neither inline nor sidecar). ${OPENUI_VALIDATE_TOOL_NAME} / ${OPENUI_UPDATE_GUIDE_TOOL_NAME} / hand-editing \`*.openui.json\` do not open conversation UI—validate alone never finishes a render task.
+- Visibility: without a successful ${OPENUI_TOOL_NAME} tool result the user sees NO UI (neither inline nor sidecar). ${OPENUI_UPDATE_GUIDE_TOOL_NAME} / hand-editing \`*.openui.json\` do not open conversation UI. Never claim created/opened/auto-opened until the tool result is in hand.
 - Route by intent, not by keyword: use ${OPENUI_TOOL_NAME} whenever the user's goal is ONE self-contained interface for structured information (dashboards, KPI cards, charts, tables, reports, forms, status panels), regardless of wording or language. Do NOT use it for multi-page apps/sites, games or highly interactive bespoke experiences, free-form documents, or anything needing arbitrary JS / external scripts / raw HTML—those belong to ordinary code/files. 按意图路由：单个自包含的结构化信息界面（看板/指标卡/图表/表格/报表/表单/状态页）一律走本工具；多页应用、游戏/重交互、自由文档、或需要任意 JS 的场景不要用 OpenUI，直接写普通代码。
 - Never substitute nuwax_ask_question when the user asks to render, show, preview, demonstrate, or update OpenUI. Load the OpenUI reference, author openui-lang, then call ${OPENUI_TOOL_NAME}.
 - nuwax_ask_question is only for a blocking clarification or decision that the Agent must receive before it can continue. Its inline/modal/wizard schema is not OpenUI Lang and must never be passed to ${OPENUI_TOOL_NAME}.
