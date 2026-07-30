@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.3.3
+
+- **Fewer authoring mistakes, higher first-try success.** Add a read-only
+  `nuwax_validate_openui` dry-run tool that validates an OpenUI Lang
+  `document.source` (syntax, root=Stack, orphaned statements, unresolved
+  references, reactive-filter guards) WITHOUT writing a file, so an agent can
+  self-check and fix before rendering instead of looping on render errors. The
+  render tool description embeds a complete, schema-valid **inline** example
+  payload (`RENDER_EXAMPLE_PAYLOAD`) plus compact single-line authoring rules
+  (no space/tab alignment padding—the usual cause of "source exceeds 100000
+  chars" failures). Sidecar + `autoOpen: true` is documented in text for
+  full-screen / "don't put it in the chat bubble" requests. The source length
+  limit error is attached to the Zod `.max({ error })` so MCP SDK pre-handler
+  validation surfaces the padding root cause (handler-side catch never sees
+  `too_big`). Authoring prompt now says dry-run with validate, then render.
+- **Presentation field descriptions** map full-screen / standalone-page wording
+  to `mode:"sidecar"` + `autoOpen:true`, and `document.language` /
+  `document.specVersion` carry explicit fixed-value descriptions.
+
 ## 0.3.2
 
 - **Route by capability quadrant, not by keyword or skill name.** The
@@ -14,9 +33,9 @@
   needing arbitrary JavaScript / external scripts / raw HTML—those belong to
   ordinary code/files. (3) Gray zone: ask whether the deliverable is ONE
   self-contained interface and whether it can be expressed with structured data
-  - standard components without arbitrary JS or pixel-level custom layout; if
-    both are yes use OpenUI, and never silently fall back to a bare `*.html` file
-    because the request sounds ambiguous.
+  + standard components without arbitrary JS or pixel-level custom layout; if
+  both are yes use OpenUI, and never silently fall back to a bare `*.html` file
+  because the request sounds ambiguous.
 - **Class-level exclusions, not skill-name enumeration.** The "no bare HTML / no
   SVG or PNG chart file / no frontend, dataviz, or charting code-generation
   skill" rule is phrased as an exclusion of a whole class of output paths, not a

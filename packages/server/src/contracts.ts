@@ -5,6 +5,7 @@ export const OPENUI_FILE_SCHEMA_VERSION = 'nuwax.openui-file/v1' as const;
 export const OPENUI_REF_SCHEMA_VERSION = 'nuwax.openui-ref/v1' as const;
 export const OPENUI_LANG_VERSION = '0.5' as const;
 export const OPENUI_TOOL_NAME = 'nuwax_render_openui' as const;
+export const OPENUI_VALIDATE_TOOL_NAME = 'nuwax_validate_openui' as const;
 export const OPENUI_REFERENCE_TOOL_NAME = 'nuwax_get_openui_reference' as const;
 export const OPENUI_UPDATE_GUIDE_TOOL_NAME =
   'nuwax_get_openui_update_guide' as const;
@@ -12,6 +13,17 @@ export const OPENUI_AUTHORING_PROMPT_NAME = 'nuwax_openui_authoring' as const;
 export const OPENUI_SCHEMA_RESOURCE_URI = 'nuwax://openui/schema/v0.5' as const;
 export const OPENUI_GUIDE_RESOURCE_URI =
   'nuwax://openui/authoring-guide/v0.5' as const;
+
+/** OpenUI Lang `document.source` / validate `source` 字符上限。 */
+export const OPENUI_SOURCE_MAX_CHARS = 100_000 as const;
+
+/**
+ * source 超限时的可操作错误文案。
+ * 必须挂在 Zod `.max(..., { error })` 上：MCP SDK 在 handler 之前校验
+ * inputSchema，handler 内的 catch 永远收不到 too_big。
+ */
+export const OPENUI_SOURCE_TOO_BIG_MESSAGE =
+  `OpenUI source exceeds the ${OPENUI_SOURCE_MAX_CHARS}-character limit. This is almost always caused by long runs of spaces/tabs added for visual alignment inside a string literal. Remove ALL alignment padding (write each statement as one compact line), then re-validate with ${OPENUI_VALIDATE_TOOL_NAME} before retrying.` as const;
 
 export const openUiReferenceInputSchema = z.object({
   format: z
@@ -54,6 +66,22 @@ const bindingSchema = z.object({
   access: z.enum(['query', 'mutation']),
 });
 
+/**
+ * render 前的 dry-run 校验工具入参。
+ * 只校验 document.source（OpenUI Lang 正文），不写文件、不落 artifact，
+ * 让 Agent 在 render 之前就能发现并修正语法 / 可达性 / 反应式 filter 错误，
+ * 把「写错→render 报错→重试」改成「自查→修→一次 render 成功」。
+ */
+export const openUiValidateInputSchema = z.object({
+  source: z
+    .string()
+    .min(1)
+    .max(OPENUI_SOURCE_MAX_CHARS, { error: OPENUI_SOURCE_TOO_BIG_MESSAGE })
+    .describe(
+      'The OpenUI Lang document source to validate (the same string you would pass to nuwax_render_openui document.source). Must start with root = Stack(...), use positional args, and reference every defined variable. Returns {valid:true} or {valid:false, errors:[...actionable messages]}.',
+    ),
+});
+
 export const renderOpenUiInputSchema = z.object({
   artifactId: z
     .string()
@@ -70,10 +98,15 @@ export const renderOpenUiInputSchema = z.object({
     mode: z
       .enum(['inline', 'sidecar'])
       .describe(
-        'Use inline for cards, forms, tables, and compact dashboards in chat. Use sidecar only for a full-page experience.',
+        'Use inline for cards, forms, tables, and compact dashboards in chat. Use sidecar when the user wants a full-screen / standalone page / "don\'t put it in the chat bubble" experience (pair with autoOpen: true).',
       ),
     preferredWidth: z.enum(['compact', 'normal', 'wide']).optional(),
-    autoOpen: z.boolean().default(false),
+    autoOpen: z
+      .boolean()
+      .default(false)
+      .describe(
+        'When true with mode "sidecar", the Host opens the full page automatically on render. Set true whenever the user asks for a full-screen / standalone page / "don\'t put it in the chat bubble" experience. Ignored for inline.',
+      ),
     density: z
       .enum(['compact', 'normal'])
       .optional()
@@ -82,14 +115,18 @@ export const renderOpenUiInputSchema = z.object({
       ),
   }),
   document: z.object({
-    language: z.literal('openui-lang'),
-    specVersion: z.literal(OPENUI_LANG_VERSION),
+    language: z
+      .literal('openui-lang')
+      .describe('Always the fixed string "openui-lang".'),
+    specVersion: z
+      .literal(OPENUI_LANG_VERSION)
+      .describe('Always the fixed string "0.5".'),
     source: z
       .string()
       .min(1)
-      .max(100_000)
+      .max(OPENUI_SOURCE_MAX_CHARS, { error: OPENUI_SOURCE_TOO_BIG_MESSAGE })
       .describe(
-        'OpenUI Lang assignment syntax, NEVER XML/HTML/JSX. The first line must define root = Stack(...); arguments are positional. Minimal valid example: root = Stack([title])\\ntitle = TextContent("Ready", "large-heavy"). Call nuwax_get_openui_reference before authoring a complex document or whenever a signature is uncertain. Reactive filters must bypass @Filter while their $binding is empty, and dynamic pie/radial charts must show an empty state when their total is zero.',
+        'OpenUI Lang assignment syntax, NEVER XML/HTML/JSX. The first line must define root = Stack(...); arguments are positional. Minimal valid example: root = Stack([title])\\ntitle = TextContent("Ready", "large-heavy"). Call nuwax_get_openui_reference before authoring a complex document or whenever a signature is uncertain. Reactive filters must bypass @Filter while their $binding is empty, and dynamic pie/radial charts must show an empty state when their total is zero. Author as compact single-line statements with no space/tab alignment padding (padding is the usual cause of exceeding the 100000-char limit).',
       ),
   }),
   bindings: z

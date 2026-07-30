@@ -3,12 +3,43 @@ import {
   readOpenUiSchemaText,
 } from './openui-assets.js';
 import {
+  OPENUI_LANG_VERSION,
   OPENUI_REFERENCE_TOOL_NAME,
+  OPENUI_SCHEMA_VERSION,
   OPENUI_TOOL_NAME,
   OPENUI_UPDATE_GUIDE_TOOL_NAME,
   type OpenUiReferenceInput,
   type OpenUiUpdateGuideInput,
 } from './contracts.js';
+
+/**
+ * 完整、可校验的 render payload 示例（默认 inline，避免模型把所有看板做成 sidecar）。
+ * 嵌入工具描述，给模型一个「结构 + 紧凑 source」的正向锚点。
+ * source 经 validateOpenUiDocument 校验通过；故意紧凑、无空格填充，
+ * 以避免模型模仿出撑爆 100k source 上限的对齐式填充。
+ */
+export const RENDER_EXAMPLE_PAYLOAD = {
+  schemaVersion: OPENUI_SCHEMA_VERSION,
+  title: '销售数据看板',
+  presentation: { mode: 'inline' as const },
+  document: {
+    language: 'openui-lang' as const,
+    specVersion: OPENUI_LANG_VERSION,
+    source: [
+      'root = Stack([kpiRow, salesChart], "column", "l")',
+      'kpiRow = Stack([revenueCard, ordersCard], "row", "m")',
+      'revenueCard = Card([TextContent("总营收", "small"), TextContent("¥1,286,500", "large-heavy"), TextContent("环比 +12.3%", "small")])',
+      'ordersCard = Card([TextContent("订单数", "small"), TextContent("8,642", "large-heavy"), TextContent("环比 +8.7%", "small")])',
+      'salesChart = BarChart(products.product, [Series("销量", products.sales)])',
+      'products = [{product: "智能手表", sales: 1240}, {product: "无线耳机", sales: 980}, {product: "手机壳", sales: 860}, {product: "充电宝", sales: 720}, {product: "蓝牙音箱", sales: 650}]',
+    ].join('\n'),
+  },
+  bindings: { tools: [] },
+  fallback: { markdown: '' },
+};
+
+/** 工具描述里随附的 delivery + authoring 紧凑指引（贴近示例，防空格填充）。 */
+export const RENDER_AUTHORING_HINTS = `Author document.source as compact single-line statements with no space/tab padding for alignment (padding bloats the payload past the 100000-char source limit and the call fails JSON parsing). Choose presentation.mode by intent: inline for compact in-chat UI (default example below); use sidecar with autoOpen: true only when the user wants a full-screen / standalone page / "don't put it in the chat bubble" experience—e.g. presentation:{"mode":"sidecar","autoOpen":true}. Example: ${JSON.stringify(RENDER_EXAMPLE_PAYLOAD)}`;
 
 const PROFILE_FOCUS: Record<OpenUiReferenceInput['profile'], string> = {
   basic:

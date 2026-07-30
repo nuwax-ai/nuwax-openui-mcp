@@ -5,6 +5,13 @@ import { describe, expect, it } from 'vitest';
 import { createOpenUiMcpServer } from './mcp-server.js';
 import type { RenderOpenUiService } from './render-service.js';
 import type { OpenUiArtifactRef } from './contracts.js';
+import {
+  OPENUI_SOURCE_MAX_CHARS,
+  OPENUI_SOURCE_TOO_BIG_MESSAGE,
+  renderOpenUiInputSchema,
+} from './contracts.js';
+import { RENDER_EXAMPLE_PAYLOAD } from './openui-reference.js';
+import { validateOpenUiDocument } from './openui-validator.js';
 
 const stubRenderService = {
   async render(): Promise<OpenUiArtifactRef> {
@@ -27,6 +34,14 @@ async function createConnectedPair() {
       await Promise.all([client.close(), server.close()]);
     },
   };
+}
+
+/** 从 callTool 结果取出可读错误文案（SDK 前置校验走 content[0].text）。 */
+function toolErrorText(result: {
+  content?: Array<{ type: string; text?: string }>;
+}): string {
+  const block = result.content?.find((c) => c.type === 'text');
+  return block?.text ?? '';
 }
 
 describe('nuwax-openui-mcp routing surface', () => {
@@ -72,8 +87,106 @@ describe('nuwax-openui-mcp routing surface', () => {
       // 既有边界不回归。
       expect(description).toContain('nuwax_ask_question');
       expect(description).toContain('*.openui.json');
+      // delivery 指引：sidecar + autoOpen 正向映射，及指向 validate 工具。
+      expect(description).toContain('autoOpen');
+      expect(description).toMatch(/sidecar/i);
+      expect(description).toContain('nuwax_validate_openui');
+      // 嵌入的完整 payload 示例以 inline 为默认锚点；sidecar 仅在文案中说明。
+      expect(description).toContain('"mode":"inline"');
+      expect(description).toContain('"mode":"sidecar"');
+      expect(description).toContain('"autoOpen":true');
+      // 紧凑 authoring 指引：禁对齐空格填充。
+      expect(description).toMatch(/no space\/tab padding|padding/i);
     } finally {
       await close();
     }
+  });
+
+  it('registers nuwax_validate_openui as a read-only dry-run tool', async () => {
+    const { client, close } = await createConnectedPair();
+    try {
+      const { tools } = await client.listTools();
+      const validateTool = tools.find((t) => t.name === 'nuwax_validate_openui');
+      expect(validateTool).toBeDefined();
+      expect(validateTool?.annotations?.readOnlyHint).toBe(true);
+      expect(validateTool?.description).toMatch(/dry-run|without writing/i);
+    } finally {
+      await close();
+    }
+  });
+
+  it('nuwax_validate_openui accepts valid source and rejects broken source with actionable errors', async () => {
+    const { client, close } = await createConnectedPair();
+    try {
+      const ok = await client.callTool({
+        name: 'nuwax_validate_openui',
+        arguments: { source: RENDER_EXAMPLE_PAYLOAD.document.source },
+      });
+      expect(ok.structuredContent).toMatchObject({ valid: true });
+
+      const bad = await client.callTool({
+        name: 'nuwax_validate_openui',
+        arguments: {
+          source:
+            'root = Stack([table])\ntable = Table([c])\nc = Col("x", d.v)\nd = [{v: 1}]\nunused = [{v: 2}]',
+        },
+      });
+      expect(bad.isError).toBe(true);
+      expect(bad.structuredContent).toMatchObject({ valid: false });
+      const errs = (
+        bad.structuredContent as { errors: string[] }
+      ).errors.join(' ');
+      expect(errs).toContain('Orphaned');
+      expect(errs).toContain('unused');
+    } finally {
+      await close();
+    }
+  });
+
+  it('surfaces the padding-root-cause message when source exceeds the limit via callTool', async () => {
+    const { client, close } = await createConnectedPair();
+    try {
+      const oversized = 'x'.repeat(OPENUI_SOURCE_MAX_CHARS + 1);
+
+      const validateResult = await client.callTool({
+        name: 'nuwax_validate_openui',
+        arguments: { source: oversized },
+      });
+      expect(validateResult.isError).toBe(true);
+      const validateText = toolErrorText(validateResult);
+      expect(validateText).toContain(OPENUI_SOURCE_TOO_BIG_MESSAGE);
+      expect(validateText).toContain('nuwax_validate_openui');
+
+      const renderResult = await client.callTool({
+        name: 'nuwax_render_openui',
+        arguments: {
+          ...RENDER_EXAMPLE_PAYLOAD,
+          document: {
+            ...RENDER_EXAMPLE_PAYLOAD.document,
+            source: oversized,
+          },
+        },
+      });
+      expect(renderResult.isError).toBe(true);
+      const renderText = toolErrorText(renderResult);
+      expect(renderText).toContain(OPENUI_SOURCE_TOO_BIG_MESSAGE);
+      expect(renderText).toMatch(/alignment|padding/i);
+    } finally {
+      await close();
+    }
+  });
+});
+
+describe('RENDER_EXAMPLE_PAYLOAD', () => {
+  it('is a complete, schema-valid render input with a validator-passing source', () => {
+    const parsed = renderOpenUiInputSchema.parse(RENDER_EXAMPLE_PAYLOAD);
+    expect(parsed.presentation.mode).toBe('inline');
+    expect(parsed.presentation.autoOpen).toBe(false);
+    expect(() =>
+      validateOpenUiDocument(RENDER_EXAMPLE_PAYLOAD.document.source),
+    ).not.toThrow();
+    // 紧凑性护栏：source 不得含对齐用的连续空格/制表符填充。
+    expect(RENDER_EXAMPLE_PAYLOAD.document.source).not.toMatch(/ {2,}|\t/);
+    expect(RENDER_EXAMPLE_PAYLOAD.document.source.length).toBeLessThan(2000);
   });
 });

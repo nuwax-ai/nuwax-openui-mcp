@@ -8,8 +8,10 @@ import {
   OPENUI_SCHEMA_RESOURCE_URI,
   OPENUI_TOOL_NAME,
   OPENUI_UPDATE_GUIDE_TOOL_NAME,
+  OPENUI_VALIDATE_TOOL_NAME,
   openUiReferenceInputSchema,
   openUiUpdateGuideInputSchema,
+  openUiValidateInputSchema,
   openUiArtifactRefSchema,
   renderOpenUiInputSchema,
 } from './contracts.js';
@@ -20,8 +22,12 @@ import {
   getOpenUiUpdateGuide,
   OPENUI_SERVER_INSTRUCTIONS,
   OPENUI_TOOL_BOUNDARY,
+  RENDER_AUTHORING_HINTS,
 } from './openui-reference.js';
-import { OpenUiDocumentError } from './openui-validator.js';
+import {
+  OpenUiDocumentError,
+  validateOpenUiDocument,
+} from './openui-validator.js';
 import { OpenUiPolicyError } from './policy.js';
 import type { RenderOpenUiService } from './render-service.js';
 
@@ -91,7 +97,7 @@ export function createOpenUiMcpServer(
           role: 'user' as const,
           content: {
             type: 'text' as const,
-            text: `${getOpenUiReference(profile)}\n\nAfter authoring the document, call ${OPENUI_TOOL_NAME} to validate and publish it.`,
+            text: `${getOpenUiReference(profile)}\n\nAfter authoring the document, dry-run it with ${OPENUI_VALIDATE_TOOL_NAME}, fix any errors, then call ${OPENUI_TOOL_NAME} to publish it.`,
           },
         },
       ],
@@ -150,10 +156,53 @@ export function createOpenUiMcpServer(
   );
 
   server.registerTool(
+    OPENUI_VALIDATE_TOOL_NAME,
+    {
+      title: 'Validate Nuwax OpenUI Source',
+      description: `Dry-run validation for an OpenUI Lang document.source WITHOUT writing any file or artifact. Use this to catch syntax, root/Stack, orphaned-statement, unresolved-reference, and reactive-filter errors BEFORE calling ${OPENUI_TOOL_NAME}, so the render call succeeds on the first try. Returns valid: true, or valid: false with actionable error messages telling you exactly what to fix.`,
+      inputSchema: openUiValidateInputSchema,
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: false,
+      },
+    },
+    async ({ source }) => {
+      try {
+        validateOpenUiDocument(source);
+        return {
+          content: [{ type: 'text' as const, text: 'OpenUI source is valid.' }],
+          structuredContent: { valid: true as const, errors: [] as string[] },
+        };
+      } catch (error) {
+        const errors =
+          error instanceof OpenUiDocumentError
+            ? error.details
+            : [
+                error instanceof Error
+                  ? error.message
+                  : 'Unknown validation error.',
+              ];
+        return {
+          isError: true,
+          content: [
+            {
+              type: 'text' as const,
+              text: `Invalid OpenUI source (${errors.length} error(s)): ${errors.join('; ')}`,
+            },
+          ],
+          structuredContent: { valid: false as const, errors },
+        };
+      }
+    },
+  );
+
+  server.registerTool(
     OPENUI_TOOL_NAME,
     {
       title: 'Render Nuwax OpenUI',
-      description: `${OPENUI_TOOL_BOUNDARY}\nCreate or update a durable OpenUI artifact in the active project. Decide by intent, not by keyword: use this tool whenever the user's goal is ONE self-contained interface that presents or collects structured information—KPI cards, charts, tables, dashboards, reports, forms, status panels—regardless of wording or language and even if no chart/component type is named. Do NOT use this tool for multi-page apps or sites, games or highly interactive bespoke experiences, free-form documents, or anything that needs arbitrary JavaScript / external scripts / raw HTML—write ordinary code/files for those instead. 按意图路由：单个自包含的结构化信息界面（指标卡/图表/表格/看板/报表/表单/状态页）一律用本工具；多页应用、游戏/重交互、自由文档、或需任意 JS 的场景请直接写普通代码，不要套本工具。Never satisfy a "self-contained visual interface" intent by writing bare *.html / *.svg / image files or by using any frontend, dataviz, or charting code-generation skill (such as frontend-design or dataviz)—those outputs cannot be rendered by the Host. The tool writes data/{artifactId}.openui.json (the dedicated *.openui.json OpenUI Lang data source) and returns a lightweight reference. Reuse artifactId to update an existing UI. Do not invent bare .openui paths. OpenUI Lang is assignment-based and is NEVER XML/HTML/JSX: start with root = Stack(...), use positional arguments, and reference every defined variable (orphaned names like unused usersData are rejected). For complex UI or uncertain component signatures, call ${OPENUI_REFERENCE_TOOL_NAME} first. Before modifying an existing artifact, call ${OPENUI_UPDATE_GUIDE_TOOL_NAME}. Reactive filters must handle empty initial bindings, and dynamic pie/radial charts must guard zero totals. Use inline for compact conversation UI and sidecar only for a full page.`,
+      description: `${OPENUI_TOOL_BOUNDARY}\nCreate or update a durable OpenUI artifact in the active project. Decide by intent, not by keyword: use this tool whenever the user's goal is ONE self-contained interface that presents or collects structured information—KPI cards, charts, tables, dashboards, reports, forms, status panels—regardless of wording or language and even if no chart/component type is named. Do NOT use this tool for multi-page apps or sites, games or highly interactive bespoke experiences, free-form documents, or anything that needs arbitrary JavaScript / external scripts / raw HTML—write ordinary code/files for those instead. 按意图路由：单个自包含的结构化信息界面（指标卡/图表/表格/看板/报表/表单/状态页）一律用本工具；多页应用、游戏/重交互、自由文档、或需任意 JS 的场景请直接写普通代码，不要套本工具。Never satisfy a "self-contained visual interface" intent by writing bare *.html / *.svg / image files or by using any frontend, dataviz, or charting code-generation skill (such as frontend-design or dataviz)—those outputs cannot be rendered by the Host. The tool writes data/{artifactId}.openui.json (the dedicated *.openui.json OpenUI Lang data source) and returns a lightweight reference. Reuse artifactId to update an existing UI. Do not invent bare .openui paths. OpenUI Lang is assignment-based and is NEVER XML/HTML/JSX: start with root = Stack(...), use positional arguments, and reference every defined variable (orphaned names like unused usersData are rejected). For complex UI or uncertain component signatures, call ${OPENUI_REFERENCE_TOOL_NAME} first. Before modifying an existing artifact, call ${OPENUI_UPDATE_GUIDE_TOOL_NAME}. To catch document.source errors before calling this tool, dry-run them through ${OPENUI_VALIDATE_TOOL_NAME}. Reactive filters must handle empty initial bindings, and dynamic pie/radial charts must guard zero totals. Use inline for compact conversation UI; use sidecar with autoOpen: true when the user wants a full-screen / standalone page / "don't put it in the chat bubble" experience.\n${RENDER_AUTHORING_HINTS}`,
       inputSchema: renderOpenUiInputSchema,
       outputSchema: openUiArtifactRefSchema,
       annotations: {
@@ -179,6 +228,8 @@ export function createOpenUiMcpServer(
           structuredContent: artifact,
         };
       } catch (error) {
+        // source 超限文案挂在 contracts 的 Zod `.max({ error })` 上，由 MCP SDK
+        // 在 handler 前校验并返回；此处只处理 renderService 抛出的其余错误。
         const message =
           error instanceof z.ZodError
             ? z.prettifyError(error)
@@ -189,7 +240,7 @@ export function createOpenUiMcpServer(
           error instanceof OpenUiDocumentError &&
           error.details.some((detail) => detail.includes('Orphaned statements'))
             ? ''
-            : `\nOpenUI Lang is not XML/HTML/JSX. Call ${OPENUI_REFERENCE_TOOL_NAME} with the closest profile, then retry once using root = Stack(...) and positional arguments.`;
+            : `\nOpenUI Lang is not XML/HTML/JSX. Call ${OPENUI_REFERENCE_TOOL_NAME} with the closest profile, then retry once using root = Stack(...) and positional arguments. To verify a fix before re-rendering, call ${OPENUI_VALIDATE_TOOL_NAME}.`;
         return {
           isError: true,
           content: [

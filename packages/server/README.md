@@ -29,7 +29,7 @@ project directory:
   "mcpServers": {
     "nuwax-openui": {
       "command": "npx",
-      "args": ["-y", "@nuwax-ai/openui-mcp@0.3.2"]
+      "args": ["-y", "@nuwax-ai/openui-mcp@0.3.3"]
     }
   }
 }
@@ -62,13 +62,18 @@ its tool list.
 - `nuwax_get_openui_update_guide`: how to update an existing `*.openui.json`
   (reuse `artifactId` with render, or edit the file while keeping
   `document.digest` valid).
+- `nuwax_validate_openui`: read-only dry-run that validates a `document.source`
+  (syntax, root=Stack, orphaned statements, unresolved references, reactive
+  filters) without writing a file—self-check before rendering to succeed on the
+  first try.
 - `nuwax://openui/schema/v0.5`: renderer-generated component schema.
 - `nuwax://openui/authoring-guide/v0.5`: syntax and examples.
 - `nuwax_openui_authoring`: reusable authoring prompt.
 
 Call `nuwax_get_openui_reference` before producing complex forms, charts, or
-dashboards. Call `nuwax_get_openui_update_guide` before modifying an existing
-OpenUI artifact.
+dashboards. Optionally dry-run a draft `document.source` through
+`nuwax_validate_openui` to catch errors before rendering. Call
+`nuwax_get_openui_update_guide` before modifying an existing OpenUI artifact.
 
 ## Routing: what OpenUI is for (and what it is not)
 
