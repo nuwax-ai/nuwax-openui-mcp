@@ -170,14 +170,14 @@ export function createOpenUiMcpServer(
     async (input) => {
       try {
         const artifact = await renderService.render(input);
+        // text 必须是可 JSON.parse 的 openui-ref：Host / Claude ACP 常从
+        // content.text 解析 sidecar autoOpen；prose 无法触发全屏预览。
+        // structuredContent 仍保留给能透传 MCP 结构化结果的引擎（nuwaxcode）。
         return {
           content: [
             {
               type: 'text' as const,
-              text:
-                `OpenUI ${artifact.presentation.mode} artifact ${artifact.operation}: ${artifact.path}. ` +
-                `This *.openui.json file is the OpenUI Lang data source. ` +
-                `To update later, call ${OPENUI_UPDATE_GUIDE_TOOL_NAME} then reuse artifactId ${artifact.artifactId} with ${OPENUI_TOOL_NAME} (or edit the file while keeping document.digest valid).`,
+              text: JSON.stringify(artifact),
             },
           ],
           structuredContent: artifact,

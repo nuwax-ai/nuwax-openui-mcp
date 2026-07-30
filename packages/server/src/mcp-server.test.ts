@@ -172,3 +172,54 @@ describe('RENDER_EXAMPLE_PAYLOAD', () => {
     expect(RENDER_EXAMPLE_PAYLOAD.document.source.length).toBeLessThan(2000);
   });
 });
+
+describe('nuwax_render_openui success payload', () => {
+  it('returns openui-ref JSON as text and the same object as structuredContent', async () => {
+    const artifactId = '550e8400-e29b-41d4-a716-446655440000';
+    const artifact: OpenUiArtifactRef = {
+      type: 'nuwax.openui-ref',
+      schemaVersion: 'nuwax.openui-ref/v1',
+      artifactId,
+      path: `data/${artifactId}.openui.json`,
+      title: '销售数据看板',
+      presentation: {
+        mode: 'sidecar',
+        autoOpen: true,
+        preferredWidth: 'wide',
+      },
+      digest: `sha256:${'a'.repeat(64)}`,
+      operation: 'created',
+    };
+    const renderService = {
+      async render() {
+        return artifact;
+      },
+    } as unknown as RenderOpenUiService;
+
+    const server = createOpenUiMcpServer(renderService);
+    const client = new Client({ name: 'test-client', version: '0.0.0' });
+    const [clientTransport, serverTransport] =
+      InMemoryTransport.createLinkedPair();
+    await Promise.all([
+      server.connect(serverTransport),
+      client.connect(clientTransport),
+    ]);
+    try {
+      const result = await client.callTool({
+        name: OPENUI_TOOL_NAME,
+        arguments: RENDER_EXAMPLE_PAYLOAD,
+      });
+      expect(result.isError).not.toBe(true);
+      const text = toolErrorText(result);
+      const parsed = JSON.parse(text);
+      expect(parsed).toMatchObject({
+        type: 'nuwax.openui-ref',
+        artifactId,
+        presentation: { mode: 'sidecar', autoOpen: true },
+      });
+      expect(result.structuredContent).toMatchObject(parsed);
+    } finally {
+      await Promise.all([client.close(), server.close()]);
+    }
+  });
+});

@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.3.7
+
+- **Render tool text is the `nuwax.openui-ref` JSON.** `nuwax_render_openui`
+  still returns `structuredContent`, but `content[0].text` is now
+  `JSON.stringify(artifact)` (no prose wrapper) so Host / Claude ACP paths that
+  only read tool text can still parse `presentation.autoOpen` and open sidecar.
+  Update guidance remains in the tool description and
+  `nuwax_get_openui_update_guide`.
+- **Export OpenUI type / schemaVersion helpers from contracts.** Hosts can import
+  `OPENUI_REF_TYPE`, `OPENUI_FILE_TYPE`, `isOpenUiRenderInputSchemaVersion`,
+  `isOpenUiRefType`, `isOpenUiFileType`, and `isOpenUiPayloadType` from
+  `@nuwax-ai/openui-mcp/contracts` instead of hard-coding string prefixes.
+
 ## 0.3.6
 
 - **Version-suffixed MCP tool names (version fingerprint).** The three registered

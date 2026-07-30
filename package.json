@@ -1,7 +1,7 @@
 {
   "name": "nuwax-openui-mcp-workspace",
   "private": true,
-  "version": "0.3.6",
+  "version": "0.3.7",
   "description": "Nuwax OpenUI MCP workspace (server + frozen renderer runtime).",
   "type": "module",
   "license": "Apache-2.0",

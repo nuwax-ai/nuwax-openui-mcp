@@ -1,7 +1,43 @@
 import { describe, expect, it } from 'vitest';
 
-import { openUiFileSchema, renderOpenUiInputSchema } from './contracts.js';
+import {
+  OPENUI_ARTIFACT_TYPE,
+  OPENUI_FILE_SCHEMA_VERSION,
+  OPENUI_FILE_TYPE,
+  OPENUI_REF_SCHEMA_VERSION,
+  OPENUI_REF_TYPE,
+  OPENUI_SCHEMA_VERSION,
+  isOpenUiFileType,
+  isOpenUiPayloadType,
+  isOpenUiRefType,
+  isOpenUiRenderInputSchemaVersion,
+  openUiFileSchema,
+  renderOpenUiInputSchema,
+} from './contracts.js';
 import { validInlineInput } from './test/fixtures.js';
+
+describe('OpenUI type / schemaVersion helpers', () => {
+  it('recognizes render input schema versions and rejects ref/file', () => {
+    expect(isOpenUiRenderInputSchemaVersion(OPENUI_SCHEMA_VERSION)).toBe(true);
+    expect(isOpenUiRenderInputSchemaVersion('nuwax.openui/v2')).toBe(true);
+    expect(isOpenUiRenderInputSchemaVersion(OPENUI_REF_SCHEMA_VERSION)).toBe(
+      false,
+    );
+    expect(isOpenUiRenderInputSchemaVersion(OPENUI_FILE_SCHEMA_VERSION)).toBe(
+      false,
+    );
+    expect(isOpenUiRenderInputSchemaVersion(undefined)).toBe(false);
+  });
+
+  it('recognizes payload type literals', () => {
+    expect(isOpenUiRefType(OPENUI_REF_TYPE)).toBe(true);
+    expect(isOpenUiFileType(OPENUI_FILE_TYPE)).toBe(true);
+    expect(isOpenUiPayloadType(OPENUI_ARTIFACT_TYPE)).toBe(true);
+    expect(isOpenUiPayloadType(OPENUI_REF_TYPE)).toBe(true);
+    expect(isOpenUiPayloadType(OPENUI_FILE_TYPE)).toBe(true);
+    expect(isOpenUiPayloadType('nuwax.mcp_ask.v2')).toBe(false);
+  });
+});
 
 describe('renderOpenUiInputSchema', () => {
   it('accepts a valid inline document', () => {

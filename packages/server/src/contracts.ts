@@ -2,10 +2,67 @@ import { z } from 'zod';
 
 import { OPENUI_MCP_VERSION_SUFFIX } from './version.js';
 
+/** render 入参 / legacy in-memory artifact：`nuwax.openui/v1` */
 export const OPENUI_SCHEMA_VERSION = 'nuwax.openui/v1' as const;
+/** 落盘 `*.openui.json`：`nuwax.openui-file/v1` */
 export const OPENUI_FILE_SCHEMA_VERSION = 'nuwax.openui-file/v1' as const;
+/** 工具结果轻量引用：`nuwax.openui-ref/v1` */
 export const OPENUI_REF_SCHEMA_VERSION = 'nuwax.openui-ref/v1' as const;
+
+/** 与 schemaVersion 对应的 `type` 字面量（Host / 引擎判断用）。 */
+export const OPENUI_ARTIFACT_TYPE = 'nuwax.openui' as const;
+export const OPENUI_FILE_TYPE = 'nuwax.openui-file' as const;
+export const OPENUI_REF_TYPE = 'nuwax.openui-ref' as const;
+
+/**
+ * schemaVersion 族前缀。`nuwax.openui` 会被 `-ref` / `-file` 共用前缀，
+ * 判断「是否为 render 入参」时必须再排除后两者。
+ */
+export const OPENUI_SCHEMA_FAMILY_PREFIX = 'nuwax.openui' as const;
+export const OPENUI_REF_SCHEMA_PREFIX = 'nuwax.openui-ref' as const;
+export const OPENUI_FILE_SCHEMA_PREFIX = 'nuwax.openui-file' as const;
+
 export const OPENUI_LANG_VERSION = '0.5' as const;
+
+/**
+ * 是否为 `nuwax_render_openui` 入参的 schemaVersion（如 `nuwax.openui/v1`）。
+ * 排除 ref / file，避免把完成态引用或落盘文件契约当成 render 入参。
+ */
+export function isOpenUiRenderInputSchemaVersion(
+  schemaVersion: unknown,
+): schemaVersion is typeof OPENUI_SCHEMA_VERSION | string {
+  if (typeof schemaVersion !== 'string') return false;
+  return (
+    schemaVersion.startsWith(OPENUI_SCHEMA_FAMILY_PREFIX) &&
+    !schemaVersion.startsWith(OPENUI_REF_SCHEMA_PREFIX) &&
+    !schemaVersion.startsWith(OPENUI_FILE_SCHEMA_PREFIX)
+  );
+}
+
+/** 是否为工具结果 `nuwax.openui-ref` 的 type。 */
+export function isOpenUiRefType(type: unknown): type is typeof OPENUI_REF_TYPE {
+  return type === OPENUI_REF_TYPE;
+}
+
+/** 是否为落盘 `nuwax.openui-file` 的 type。 */
+export function isOpenUiFileType(
+  type: unknown,
+): type is typeof OPENUI_FILE_TYPE {
+  return type === OPENUI_FILE_TYPE;
+}
+
+/**
+ * 是否为 OpenUI 相关 payload type（legacy artifact / file / ref）。
+ * Host 排除 ask-question 等非 OpenUI 工具时可用。
+ */
+export function isOpenUiPayloadType(type: unknown): boolean {
+  return (
+    type === OPENUI_ARTIFACT_TYPE ||
+    isOpenUiFileType(type) ||
+    isOpenUiRefType(type)
+  );
+}
+
 /**
  * 工具名在基名后追加版本后缀（如 `nuwax_render_openui_v0_3_6`），让 MCP 客户端
  * 直接看到版本指纹；后缀取自 package.json，版本永远联动。资源 / prompt 名称不带后缀。
@@ -165,7 +222,7 @@ export const renderOpenUiInputSchema = z.object({
 });
 
 export const openUiArtifactSchema = z.object({
-  type: z.literal('nuwax.openui'),
+  type: z.literal(OPENUI_ARTIFACT_TYPE),
   schemaVersion: z.literal(OPENUI_SCHEMA_VERSION),
   artifactId: z.string().uuid(),
   title: z.string(),
@@ -204,7 +261,7 @@ export const openUiArtifactSchema = z.object({
 });
 
 export const openUiFileSchema = z.object({
-  type: z.literal('nuwax.openui-file'),
+  type: z.literal(OPENUI_FILE_TYPE),
   schemaVersion: z.literal(OPENUI_FILE_SCHEMA_VERSION),
   // 0.3.6 起：写入时由 render-service 填入 MCP 包版本，作为可追溯的版本指纹。
   // 设为 optional，让 0.3.6 之前落盘的旧 artifact 仍能正常加载（无此字段）。
@@ -239,7 +296,7 @@ export const openUiFileSchema = z.object({
 });
 
 export const openUiArtifactRefSchema = z.object({
-  type: z.literal('nuwax.openui-ref'),
+  type: z.literal(OPENUI_REF_TYPE),
   schemaVersion: z.literal(OPENUI_REF_SCHEMA_VERSION),
   artifactId: z.string().uuid(),
   path: z.string().regex(/^data\/[0-9a-f-]{36}\.openui\.json$/),
