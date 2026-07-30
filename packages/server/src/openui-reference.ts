@@ -20,15 +20,45 @@ const PROFILE_FOCUS: Record<OpenUiReferenceInput['profile'], string> = {
 };
 
 /**
+ * Server 级路由声明（MCP initialize 握手下发给宿主）。
+ * 以"能力象限"定义 OpenUI 整体接入方案适合做什么 / 不推荐做什么，
+ * 让宿主对任意请求按意图自我路由，而非匹配触发关键词或组件清单。
+ */
+export const OPENUI_SERVER_INSTRUCTIONS = `## Nuwax OpenUI routing (CRITICAL)
+
+This server is the ONLY way to produce UI that the Nuwax Host can render inline in conversation or in a sidecar page. 本服务是 Host 唯一能在对话内 / sidecar 渲染 UI 的协议。
+
+### Prefer ${OPENUI_TOOL_NAME} (首选象限)
+Route by intent, not by keywords. Whenever the user's underlying goal is a SINGLE, SELF-CONTAINED visual interface that presents or collects STRUCTURED information using standard components—KPI cards, charts, tables, forms, text, images—whether they ask to build a dashboard, monitoring panel, report, data-collection form, status page, or any comparable outcome, in any wording or language—you MUST call ${OPENUI_TOOL_NAME}. Do not wait for them to say "OpenUI" or to use a specific term like "dashboard"/"看板". 按意图路由：只要用户的真实目的是"用一个自包含界面呈现或收集结构化信息"（指标卡、图表、表格、表单、文本、图像等标准组件可表达的：数据看板、监控面板、报表、表单、状态页），无论措辞、无论语言、无论是否点名图表或组件，都必须走 ${OPENUI_TOOL_NAME}。For complex UI or uncertain component signatures, call ${OPENUI_REFERENCE_TOOL_NAME} first.
+
+### Do NOT use OpenUI (不推荐象限) — leave these to ordinary coding
+OpenUI is NOT the right tool when the request is really for:
+- A multi-page application, website, or anything with client-side routing / navigation between screens (多页应用、网站、需要路由跳转的界面).
+- A highly interactive or bespoke experience: games, animations, canvas/SVG editors, drag-and-drop builders, pixel-perfect custom layouts (重交互或高度定制体验：游戏、动画、画布编辑器、拖拽搭建、像素级自由布局——OpenUI 用标准结构化组件，不提供像素级自由布局).
+- Free-form documents, rich-text/Markdown content, or long-form articles (自由文档、富文本、长文内容).
+- Anything that must run arbitrary JavaScript, load external scripts, or embed raw HTML/CSS (需要执行任意 JS、加载外部脚本、或嵌入原生 HTML/CSS 的场景——OpenUI Lang 是受限 DSL，不允许这些).
+These outcomes are better served by writing ordinary code/files directly; do NOT force them into ${OPENUI_TOOL_NAME}. 上述需求应直接写普通代码/文件，不要套 OpenUI。
+
+### Judgment principle for the gray zone (灰区判断原则)
+Ask two questions: (1) Is the deliverable ONE self-contained interface rather than a navigable app? (2) Can it be expressed with structured data + standard components (KPI/chart/table/form/text), without arbitrary JS or pixel-level custom layout? If BOTH are yes, use ${OPENUI_TOOL_NAME}; otherwise write ordinary code/files. When in doubt, prefer the option whose output the Host can actually render in-conversation—never silently fall back to a bare \`*.html\` file just because the request sounds ambiguous. 判断两点：交付物是不是单个自包含界面？能否用"结构化数据 + 标准组件（指标/图表/表格/表单/文本）"表达、不需要任意 JS 或像素级自由布局？两个都"是"就走 ${OPENUI_TOOL_NAME}，否则写普通代码/文件。拿不准时，优先选 Host 真能在对话内渲染的那条路，绝不要因为需求含糊就默默退化成裸 \`*.html\` 文件。
+
+### Hard exclusions (硬性排除)
+- NEVER satisfy a "prefer" intent by writing bare HTML/CSS/JS files (\`*.html\`), SVG/PNG chart files, or by using any frontend/dataviz/charting code-generation skill or tool (such as frontend-design, dataviz, or any skill that produces web pages, charts, or visualization code). 禁止用裸 HTML、图片/SVG 图表、或任何前端 / 数据可视化 / 图表类 skill 代替 ${OPENUI_TOOL_NAME}——这些产出 Host 都无法在对话内 / sidecar 渲染。
+- ${OPENUI_TOOL_NAME} and nuwax_ask_question are separate tools: nuwax_ask_question is only for a blocking clarification the Agent must receive before it can continue; never use it to render UI.
+- The durable OpenUI data source is ALWAYS \`data/{artifactId}.openui.json\`. To update an existing UI, call ${OPENUI_UPDATE_GUIDE_TOOL_NAME} first, then reuse the artifactId with ${OPENUI_TOOL_NAME}.
+`;
+
+/**
  * 工具边界与文件类型约定。
  * OpenUI Lang 专用数据源扩展名是 `*.openui.json`；不禁止直接编辑该文件，但须维持契约。
  */
 export const OPENUI_TOOL_BOUNDARY = `## Tool Boundary (CRITICAL)
 
 - ${OPENUI_TOOL_NAME} and nuwax_ask_question are separate tools; ${OPENUI_TOOL_NAME} is not an alias for nuwax_ask_question.
-- Use ${OPENUI_TOOL_NAME} to create or update a durable visual Artifact: cards, dashboards, charts, tables, reports, application forms, and interactive pages.
+- Route by intent, not by keyword: use ${OPENUI_TOOL_NAME} whenever the user's goal is ONE self-contained interface for structured information (dashboards, KPI cards, charts, tables, reports, forms, status panels), regardless of wording or language. Do NOT use it for multi-page apps/sites, games or highly interactive bespoke experiences, free-form documents, or anything needing arbitrary JS / external scripts / raw HTML—those belong to ordinary code/files. 按意图路由：单个自包含的结构化信息界面（看板/指标卡/图表/表格/报表/表单/状态页）一律走本工具；多页应用、游戏/重交互、自由文档、或需要任意 JS 的场景不要用 OpenUI，直接写普通代码。
 - Never substitute nuwax_ask_question when the user asks to render, show, preview, demonstrate, or update OpenUI. Load the OpenUI reference, author openui-lang, then call ${OPENUI_TOOL_NAME}.
 - nuwax_ask_question is only for a blocking clarification or decision that the Agent must receive before it can continue. Its inline/modal/wizard schema is not OpenUI Lang and must never be passed to ${OPENUI_TOOL_NAME}.
+- Do NOT produce UI through ANY code-generation or file-writing path: no bare HTML/CSS/JS files (\`*.html\`), no SVG/PNG chart files, and no frontend/dataviz/charting skills or tools (such as frontend-design, dataviz, or any skill that generates web pages, charts, or visualization code). 裸 HTML、图片/SVG 图表、以及任何前端 / 数据可视化 / 图表类 skill 的产出都无法在 Host inline/sidecar 中渲染，只有 ${OPENUI_TOOL_NAME} 写入的 \`*.openui.json\` 才是 Host 可渲染的协议。用户意图只要是"单个自包含的可视化界面"，一律走 ${OPENUI_TOOL_NAME}，不要写 \`*.html\`。
 - OpenUI Lang durable data source extension is ALWAYS \`*.openui.json\` (canonical path: \`data/{artifactId}.openui.json\`). Do not invent bare \`.openui\` or other suffixes as the OpenUI data source.
 - When the user asks to modify an existing OpenUI UI or \`*.openui.json\` file, call ${OPENUI_UPDATE_GUIDE_TOOL_NAME} first, then update via ${OPENUI_TOOL_NAME} (reuse artifactId) or by editing the \`.openui.json\` while keeping the file contract (including document.digest).
 `;
@@ -90,6 +120,10 @@ function normalizeGeneratedReference(reference: string): string {
     .replace(
       "5. EVERY variable (except root) MUST be referenced by at least one other variable. Unreferenced variables are silently dropped and will NOT render. Always include defined variables in their parent's children/items array.",
       "5. EVERY variable (except root) MUST be referenced by at least one other variable. On Nuwax, unreferenced variables are a VALIDATION ERROR (Orphaned statements) and the document is rejected—they are not silently dropped. Always include defined variables in their parent's children/items array or in Col/Table/chart expressions.",
+    )
+    .replace(
+      '- Shared filter across Tabs: same $days binding in Query args works across all TabItems',
+      "- Shared filter across Tabs: reuse the same $days binding in each TabItem's chart/table args so one filter drives all tabs.",
     );
 }
 

@@ -29,7 +29,7 @@ project directory:
   "mcpServers": {
     "nuwax-openui": {
       "command": "npx",
-      "args": ["-y", "@nuwax-ai/openui-mcp@0.3.1"]
+      "args": ["-y", "@nuwax-ai/openui-mcp@0.3.2"]
     }
   }
 }
@@ -69,6 +69,54 @@ its tool list.
 Call `nuwax_get_openui_reference` before producing complex forms, charts, or
 dashboards. Call `nuwax_get_openui_update_guide` before modifying an existing
 OpenUI artifact.
+
+## Routing: what OpenUI is for (and what it is not)
+
+During the MCP `initialize` handshake this server sends `instructions` that tell
+the host how to route UI-producing requests. Routing is defined **by capability
+quadrant, not by keyword or skill name**:
+
+- **Prefer OpenUI** — a single, self-contained visual interface that presents or
+  collects structured information using standard components (KPI cards, charts,
+  tables, forms, text, images): data dashboards, monitoring panels, reports,
+  data-collection forms, status pages. Regardless of wording or language, these
+  MUST go to `nuwax_render_openui`, because the resulting `*.openui.json` is the
+  only UI payload the Nuwax Host can render inline or in a sidecar.
+- **Do NOT use OpenUI** — multi-page apps / websites / client-side routing;
+  games or highly interactive bespoke experiences; free-form documents or
+  long-form rich text; anything needing arbitrary JavaScript, external scripts,
+  or raw HTML. OpenUI Lang is a restricted DSL (the model only composes standard
+  components and never runs arbitrary code) and one artifact is one interface,
+  so these are better served by writing ordinary code/files.
+- **Gray zone** — ask: (1) is the deliverable ONE self-contained interface
+  rather than a navigable app? (2) can it be expressed with structured data +
+  standard components, without arbitrary JS or pixel-level custom layout? If
+  both are yes, use OpenUI; otherwise write ordinary code. When in doubt, prefer
+  the output the Host can actually render in-conversation—never silently fall
+  back to a bare `*.html` file.
+
+Bare `*.html` files, SVG/PNG chart files, and any frontend / dataviz / charting
+code-generation skill (frontend-design, dataviz, and similar) bypass the OpenUI
+protocol and must not be used as a substitute for a "prefer" intent. The
+exclusion is phrased as a class of output paths, not a closed list of skill
+names, so newly added skills are covered too.
+
+### Reserved for future upstream alignment
+
+Two extension points are pre-wired for upcoming parity with the official
+openui-lang spec; both are inert today:
+
+- `presentation.density` (`"compact" | "normal"`, optional): reserved for theme
+  density. A compact density token set already ships in the runtime; the field
+  is stored on the artifact so density-aware rendering can honor it later.
+- `customComponents` (optional, must be empty): placeholder for official-style
+  custom component registration (`defineComponent` + Zod + `createLibrary`). No
+  runtime registration mechanism exists yet, so only an absent/empty value is
+  accepted.
+- `bindings.tools` (optional, must stay empty): placeholder for live MCP-tool
+  data bindings. The current runtime does NOT execute Query/Mutation tool
+  bindings, so the authoring reference deliberately does not document
+  `Query(...)`/`Mutation(...)` and agents should leave `tools` empty.
 
 ## Creating an Artifact
 

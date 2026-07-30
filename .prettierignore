@@ -2,3 +2,4 @@
 coverage
 packages/server/src/generated
 pnpm-lock.yaml
+.claude/settings.local.json

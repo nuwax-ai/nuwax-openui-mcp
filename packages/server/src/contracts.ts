@@ -74,6 +74,12 @@ export const renderOpenUiInputSchema = z.object({
       ),
     preferredWidth: z.enum(['compact', 'normal', 'wide']).optional(),
     autoOpen: z.boolean().default(false),
+    density: z
+      .enum(['compact', 'normal'])
+      .optional()
+      .describe(
+        'Reserved for theme density. Stored on the artifact only; the current runtime ignores it and always renders the compact theme, so there is no visual effect today. Omit for the default.',
+      ),
   }),
   document: z.object({
     language: z.literal('openui-lang'),
@@ -88,9 +94,25 @@ export const renderOpenUiInputSchema = z.object({
   }),
   bindings: z
     .object({
-      tools: z.array(bindingSchema).max(32),
+      // Live MCP-tool data bindings (Query/Mutation) are not yet executed by the
+      // runtime, so only an absent or empty tools array is accepted at render time.
+      // The on-disk file schema keeps max(32) so existing artifacts still parse.
+      tools: z.array(bindingSchema).max(0),
     })
-    .default({ tools: [] }),
+    .default({ tools: [] })
+    .describe(
+      'Reserved placeholder for live MCP-tool data bindings (Query/Mutation). The current runtime does NOT execute tool bindings—leave tools empty.',
+    ),
+  // Reserved for upstream-style custom components (official defineComponent + Zod +
+  // createLibrary). No runtime registration mechanism exists yet; only an absent or
+  // empty array is accepted until the renderer learns to resolve them.
+  customComponents: z
+    .array(z.record(z.string(), z.unknown()))
+    .max(0)
+    .optional()
+    .describe(
+      'Reserved placeholder for future custom-component registration (not yet supported). Leave unset.',
+    ),
   fallback: z
     .object({
       markdown: z.string().max(20_000).default(''),
@@ -107,6 +129,7 @@ export const openUiArtifactSchema = z.object({
     mode: z.enum(['inline', 'sidecar']),
     autoOpen: z.boolean(),
     preferredWidth: z.enum(['compact', 'normal', 'wide']).optional(),
+    density: z.enum(['compact', 'normal']).optional(),
   }),
   document: z.object({
     language: z.literal('openui-lang'),
@@ -145,6 +168,7 @@ export const openUiFileSchema = z.object({
     mode: z.enum(['inline', 'sidecar']),
     autoOpen: z.boolean(),
     preferredWidth: z.enum(['compact', 'normal', 'wide']).optional(),
+    density: z.enum(['compact', 'normal']).optional(),
   }),
   document: z.object({
     language: z.literal('openui-lang'),

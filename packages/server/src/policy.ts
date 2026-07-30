@@ -10,6 +10,9 @@ const FORBIDDEN_SOURCE_PATTERNS: Array<{ code: string; pattern: RegExp }> = [
 ];
 
 const MAX_LINES = 2_000;
+// Reserved for when tool bindings are re-enabled: renderOpenUiInputSchema currently
+// caps bindings.tools at 0 (unexecuted), so the checks below are unreachable for now
+// but stay correct for the file-layer (max 32) contract they were designed for.
 const MAX_BINDINGS = 32;
 
 export class OpenUiPolicyError extends Error {

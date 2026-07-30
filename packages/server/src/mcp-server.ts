@@ -18,6 +18,7 @@ import {
   getOpenUiDslSchema,
   getOpenUiReference,
   getOpenUiUpdateGuide,
+  OPENUI_SERVER_INSTRUCTIONS,
   OPENUI_TOOL_BOUNDARY,
 } from './openui-reference.js';
 import { OpenUiDocumentError } from './openui-validator.js';
@@ -27,10 +28,13 @@ import type { RenderOpenUiService } from './render-service.js';
 export function createOpenUiMcpServer(
   renderService: RenderOpenUiService,
 ): McpServer {
-  const server = new McpServer({
-    name: 'nuwax-openui-mcp',
-    version: OPENUI_MCP_VERSION,
-  });
+  const server = new McpServer(
+    {
+      name: 'nuwax-openui-mcp',
+      version: OPENUI_MCP_VERSION,
+    },
+    { instructions: OPENUI_SERVER_INSTRUCTIONS },
+  );
 
   server.registerResource(
     'nuwax-openui-dsl-schema',
@@ -149,7 +153,7 @@ export function createOpenUiMcpServer(
     OPENUI_TOOL_NAME,
     {
       title: 'Render Nuwax OpenUI',
-      description: `${OPENUI_TOOL_BOUNDARY}\nCreate or update a durable OpenUI artifact in the active project. Use this whenever the user asks to show, render, visualize, preview, or build a card, dashboard, chart, table, report, form, status panel, or other structured interface—even if they do not mention OpenUI. The tool writes data/{artifactId}.openui.json (the dedicated *.openui.json OpenUI Lang data source) and returns a lightweight reference. Reuse artifactId to update an existing UI. Do not invent bare .openui paths. OpenUI Lang is assignment-based and is NEVER XML/HTML/JSX: start with root = Stack(...), use positional arguments, and reference every defined variable (orphaned names like unused usersData are rejected). For complex UI or uncertain component signatures, call ${OPENUI_REFERENCE_TOOL_NAME} first. Before modifying an existing artifact, call ${OPENUI_UPDATE_GUIDE_TOOL_NAME}. Reactive filters must handle empty initial bindings, and dynamic pie/radial charts must guard zero totals. Use inline for compact conversation UI and sidecar only for a full page.`,
+      description: `${OPENUI_TOOL_BOUNDARY}\nCreate or update a durable OpenUI artifact in the active project. Decide by intent, not by keyword: use this tool whenever the user's goal is ONE self-contained interface that presents or collects structured information—KPI cards, charts, tables, dashboards, reports, forms, status panels—regardless of wording or language and even if no chart/component type is named. Do NOT use this tool for multi-page apps or sites, games or highly interactive bespoke experiences, free-form documents, or anything that needs arbitrary JavaScript / external scripts / raw HTML—write ordinary code/files for those instead. 按意图路由：单个自包含的结构化信息界面（指标卡/图表/表格/看板/报表/表单/状态页）一律用本工具；多页应用、游戏/重交互、自由文档、或需任意 JS 的场景请直接写普通代码，不要套本工具。Never satisfy a "self-contained visual interface" intent by writing bare *.html / *.svg / image files or by using any frontend, dataviz, or charting code-generation skill (such as frontend-design or dataviz)—those outputs cannot be rendered by the Host. The tool writes data/{artifactId}.openui.json (the dedicated *.openui.json OpenUI Lang data source) and returns a lightweight reference. Reuse artifactId to update an existing UI. Do not invent bare .openui paths. OpenUI Lang is assignment-based and is NEVER XML/HTML/JSX: start with root = Stack(...), use positional arguments, and reference every defined variable (orphaned names like unused usersData are rejected). For complex UI or uncertain component signatures, call ${OPENUI_REFERENCE_TOOL_NAME} first. Before modifying an existing artifact, call ${OPENUI_UPDATE_GUIDE_TOOL_NAME}. Reactive filters must handle empty initial bindings, and dynamic pie/radial charts must guard zero totals. Use inline for compact conversation UI and sidecar only for a full page.`,
       inputSchema: renderOpenUiInputSchema,
       outputSchema: openUiArtifactRefSchema,
       annotations: {

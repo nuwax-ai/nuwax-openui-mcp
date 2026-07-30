@@ -22,18 +22,4 @@ describe('enforceOpenUiPolicy', () => {
 
     expect(() => enforceOpenUiPolicy(input)).toThrow(OpenUiPolicyError);
   });
-
-  it('rejects duplicate MCP bindings', () => {
-    const binding = {
-      serverId: 'analytics',
-      toolName: 'query',
-      access: 'query' as const,
-    };
-    const input = renderOpenUiInputSchema.parse({
-      ...validInlineInput,
-      bindings: { tools: [binding, binding] },
-    });
-
-    expect(() => enforceOpenUiPolicy(input)).toThrow('Duplicate MCP binding');
-  });
 });

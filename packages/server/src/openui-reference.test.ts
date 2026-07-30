@@ -50,6 +50,26 @@ describe('getOpenUiReference', () => {
       /Unreferenced variables are silently dropped and will NOT render/,
     );
   });
+
+  it('does not teach Query/Mutation data bindings (runtime does not execute them)', () => {
+    for (const profile of ['basic', 'dashboard', 'form', 'all'] as const) {
+      const reference = getOpenUiReference(profile);
+      expect(reference).not.toMatch(/Query\(/);
+      expect(reference).not.toMatch(/Mutation\(/);
+      expect(reference).not.toMatch(/@Run\(/);
+      expect(reference).not.toMatch(/refreshSeconds/);
+      // 上游原文里的 "Query args" 措辞（无括号）也必须被 scrub 掉。
+      expect(reference).not.toContain('Query args');
+    }
+  });
+
+  it('rewrites the upstream Shared-filter-across-Tabs tip to drop the Query wording', () => {
+    const reference = getOpenUiReference('dashboard');
+
+    expect(reference).toContain(
+      "reuse the same $days binding in each TabItem's chart/table args so one filter drives all tabs.",
+    );
+  });
 });
 
 describe('getOpenUiUpdateGuide', () => {
