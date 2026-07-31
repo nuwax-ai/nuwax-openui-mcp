@@ -2,7 +2,11 @@ import { Renderer, type ActionEvent } from '@openuidev/react-lang';
 import { ThemeProvider } from '@openuidev/react-ui';
 import { openuiLibrary } from '@openuidev/react-ui/genui-lib';
 import { compactOpenUiTheme } from '../../server/src/compactTheme';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  createMobileAwareLibrary,
+  MobileLayoutProvider,
+} from '../../server/src/mobileLayout';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 interface RuntimeArtifact {
   type: 'nuwax.openui-file';
@@ -43,7 +47,10 @@ export function RuntimeApp() {
   const [error, setError] = useState<string | null>(null);
   const [pendingActionId, setPendingActionId] = useState<string | null>(null);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [viewport, setViewport] = useState<'desktop' | 'mobile'>('desktop');
   const stateRef = useRef<Record<string, unknown>>({});
+  // 始终用"移动端感知"库：组件自行按 LayoutContext 决定是否横排→竖排，桌面端零变化。
+  const library = useMemo(() => createMobileAwareLibrary(openuiLibrary), []);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -58,8 +65,9 @@ export function RuntimeApp() {
         const nextTheme = message.data.theme || 'light';
         document.documentElement.dataset.theme = nextTheme;
         setTheme(nextTheme);
-        document.documentElement.dataset.viewport =
-          message.data.viewport || 'desktop';
+        const nextViewport = message.data.viewport || 'desktop';
+        document.documentElement.dataset.viewport = nextViewport;
+        setViewport(nextViewport);
         setError(null);
         setArtifact(message.data.artifact);
         return;
@@ -132,22 +140,24 @@ export function RuntimeApp() {
     <div ref={containerRef} className="openui-runtime">
       {error ? <div className="openui-action-error">{error}</div> : null}
       <ThemeProvider mode={theme} lightTheme={compactOpenUiTheme}>
-        <Renderer
-          library={openuiLibrary}
-          response={artifact.document.source}
-          isStreaming={Boolean(pendingActionId)}
-          onStateUpdate={(state) => {
-            stateRef.current = state;
-          }}
-          onAction={handleAction}
-          onError={(errors) => {
-            if (errors.length > 0) {
-              const message = errors[0]?.message ?? 'Render failed.';
-              setError(message);
-              postToHost({ type: 'OPENUI_ERROR', nonce, message });
-            }
-          }}
-        />
+        <MobileLayoutProvider isMobile={viewport === 'mobile'}>
+          <Renderer
+            library={library}
+            response={artifact.document.source}
+            isStreaming={Boolean(pendingActionId)}
+            onStateUpdate={(state) => {
+              stateRef.current = state;
+            }}
+            onAction={handleAction}
+            onError={(errors) => {
+              if (errors.length > 0) {
+                const message = errors[0]?.message ?? 'Render failed.';
+                setError(message);
+                postToHost({ type: 'OPENUI_ERROR', nonce, message });
+              }
+            }}
+          />
+        </MobileLayoutProvider>
       </ThemeProvider>
     </div>
   );
