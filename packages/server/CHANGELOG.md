@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.3.9
+
+- **Mobile-aware rendering (`/mobile-layout`).** New subpath export
+  `@nuwax-ai/openui-mcp/mobile-layout` with `createMobileAwareLibrary(base)` and
+  `MobileLayoutProvider`. `createMobileAwareLibrary` overrides `Stack` / `Card` so that
+  when `LayoutContext.layout === 'mobile'` their `direction` is forced to `column`
+  (row → column); all other components, `componentGroups`, and `root` are preserved, and
+  desktop behavior is unchanged. This lets the frozen web runtime and hosts render one
+  identical `.openui.json` differently on mobile driven by a **runtime viewport flag**
+  (via `LayoutContext`, not CSS-width media queries) — the upstream framework has no
+  native mobile/responsive support. `@openuidev/react-ui` is declared as an **optional
+  peer dependency** (only consumed by `/mobile-layout`; the MCP server itself never
+  imports it, so the slim stdio process is unaffected).
+- **Upgrade upstream OpenUI deps.** `@openuidev/react-ui` 0.12.1 → 0.13.2 and
+  `@openuidev/react-lang` 0.2.8 → 0.2.9 (the mobile-layout override is implemented
+  against the 0.13.x `defineComponent` / `createLibrary` / `LayoutContext` API). The
+  generated component schema / reference are byte-identical to 0.3.8.
+
 ## 0.3.8
 
 - **Make `/contracts` browser-safe.** Tool names that depend on reading
