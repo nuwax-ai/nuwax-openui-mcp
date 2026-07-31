@@ -32,6 +32,28 @@ body {
   width: min(1080px, 100%);
   margin: 0 auto;
   padding: 12px 16px;
+  /*
+   * 窄宽护栏：容器本身会随父级收缩（width: min(1080px,100%)），但内部渲染器产出的
+   * 图表/媒体（recharts 固定 200px SVG 等）不会自适应——多图横排时会撑爆容器、
+   * 触发整页横向滚动并裁切。这里用 overflow-x:auto 把溢出框死在 artifact 内部
+   * （永不裁切面板/页面），并配合下方 svg/media 的 max-width:100% 让它们真正缩小。
+   * 不设 overflow-y：纵向高度由 ResizeObserver 上报 Host 决定，避免出现双滚动条。
+   */
+  overflow-x: auto;
+  overflow-wrap: anywhere;
+}
+
+/*
+ * 让固定尺寸的图表（recharts 200×200 SVG）、canvas、图片按容器宽度等比缩小，
+ * 使横排多图在小宽度下不再溢出。max-width 只缩不放，24px 图标不受影响；
+ * height:auto 配合 viewBox 保持比例。
+ */
+.openui-runtime svg,
+.openui-runtime canvas,
+.openui-runtime img,
+.openui-runtime video {
+  max-width: 100%;
+  height: auto;
 }
 
 .openui-action-error {
