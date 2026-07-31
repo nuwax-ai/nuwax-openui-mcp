@@ -3,3 +3,6 @@ coverage
 packages/server/src/generated
 pnpm-lock.yaml
 .claude/settings.local.json
+
+# vendored uni webview JSSDK (minified)
+packages/runtime/web/uni-webview.js

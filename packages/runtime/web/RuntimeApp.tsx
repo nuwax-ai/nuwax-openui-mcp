@@ -38,7 +38,64 @@ interface ActionResultMessage {
 const protocolVersion = 'nuwax.openui-runtime/v1' as const;
 
 function postToHost(message: Record<string, unknown>): void {
-  window.parent.postMessage({ protocolVersion, ...message }, '*');
+  const payload = { protocolVersion, ...message };
+  // PC web iframe / H5：标准 postMessage（始终发送；App webview 里 window.parent===window 会回环但 handler 只认 LOAD/ACTION_RESULT，无害）。
+  window.parent.postMessage(payload, '*');
+  // App / uni-app webview：按需懒加载 uni-webview.js，经 uni.postMessage 发送（PC web 不加载）。
+  postToUniAppWebview(payload);
+}
+
+/** 是否处于 uni-app / App webview（需要 uni JSSDK 桥接 @message）；PC web iframe 返回 false。 */
+function isUniAppWebview(): boolean {
+  const w = window as unknown as {
+    __dcloud_weex_postMessage?: unknown;
+    __dcloud_weex_?: unknown;
+    plus?: unknown;
+  };
+  return (
+    w.__dcloud_weex_postMessage != null ||
+    w.__dcloud_weex_ != null ||
+    w.plus != null ||
+    /uni-app|Html5Plus/i.test(navigator.userAgent)
+  );
+}
+
+const uniWebviewGlobal = (): {
+  uni?: { postMessage?: (data: { data: unknown[] }) => void };
+} =>
+  window as unknown as {
+    uni?: { postMessage?: (d: { data: unknown[] }) => void };
+  };
+
+let uniScriptPromise: Promise<void> | null = null;
+/** 按需懒加载同目录下的 uni-webview.js（仅 App webview 调用；加载后 window.uni 可用）。 */
+function loadUniWebviewScript(): Promise<void> {
+  if (uniWebviewGlobal().uni?.postMessage) {
+    return Promise.resolve();
+  }
+  if (uniScriptPromise == null) {
+    uniScriptPromise = new Promise<void>((resolve) => {
+      const script = document.createElement('script');
+      script.src = './uni-webview.js';
+      script.onload = () => resolve();
+      script.onerror = () => resolve();
+      document.head.appendChild(script);
+    });
+  }
+  return uniScriptPromise;
+}
+
+function postToUniAppWebview(payload: Record<string, unknown>): void {
+  if (!isUniAppWebview()) {
+    return;
+  }
+  void loadUniWebviewScript().then(() => {
+    const postMessage = uniWebviewGlobal().uni?.postMessage;
+    if (postMessage) {
+      // uni.postMessage 的数据会在 App <web-view> @message 回调里以 detail.data 数组形式给出。
+      postMessage({ data: [payload] });
+    }
+  });
 }
 
 export function RuntimeApp() {
