@@ -19,8 +19,8 @@
     "prepublishOnly": "pnpm --workspace-root verify"
   },
   "devDependencies": {
-    "@openuidev/react-lang": "0.2.8",
-    "@openuidev/react-ui": "0.12.1",
+    "@openuidev/react-lang": "0.2.9",
+    "@openuidev/react-ui": "0.13.2",
     "@types/react": "18.3.27",
     "@types/react-dom": "18.3.7",
     "@vitejs/plugin-react": "5.1.1",
