@@ -84,3 +84,7 @@ html[data-viewport='mobile'] .openui-runtime {
 .openui-error {
   color: #b42318;
 }
+
+.openui-stacked-legend {
+  min-width: 100%;
+}
