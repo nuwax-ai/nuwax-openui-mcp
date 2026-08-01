@@ -39,19 +39,12 @@ const protocolVersion = 'nuwax.openui-runtime/v1' as const;
 
 function postToHost(message: Record<string, unknown>): void {
   const payload = { protocolVersion, ...message };
-  // 标准 postMessage：PC web iframe 的 Host 直收；App webview 里 window.parent===window 回环
-  // （file-path-bootstrap 自加载用；handler 只认 LOAD/ACTION_RESULT，RESIZE/ACTION 会被忽略，无害）。
+  // runtime 保持纯粹：只发标准 window.parent.postMessage，不引用 uni-webview / JSSDK。
+  // - PC web iframe / H5：Host 直接收到（parent !== window）。
+  // - App 原生 / 小程序顶层 webview：parent === window，postMessage 回环到自身；由入口
+  //   index.html 的 bootstrap relay 监听本窗 message，再经 uni.webView.postMessage 桥接到
+  //   <web-view> @message（JSSDK 与桥接逻辑全在 Host 侧）。
   window.parent.postMessage(payload, '*');
-  // App <web-view> @message：uni-webview.js 由入口 index.html 在 App 环境按需加载，
-  // 注入 window.uni.postMessage；这里把同一 payload 再经它桥接给 App。
-  const uni = (
-    window as unknown as {
-      uni?: { postMessage?: (data: { data: unknown[] }) => void };
-    }
-  ).uni;
-  if (uni?.postMessage) {
-    uni.postMessage({ data: [payload] });
-  }
 }
 
 export function RuntimeApp() {

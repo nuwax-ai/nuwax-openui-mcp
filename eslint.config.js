@@ -6,12 +6,7 @@ import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
   {
-    ignores: [
-      '**/dist',
-      'coverage',
-      'packages/server/src/generated',
-      'packages/runtime/web/uni-webview.js', // vendored uni webview JSSDK (minified)
-    ],
+    ignores: ['**/dist', 'coverage', 'packages/server/src/generated'],
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,
