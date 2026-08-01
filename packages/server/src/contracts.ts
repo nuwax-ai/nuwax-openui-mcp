@@ -66,6 +66,25 @@ export function isOpenUiPayloadType(type: unknown): boolean {
   );
 }
 
+/**
+ * OpenUI MCP 工具基名（不含版本后缀）。
+ *
+ * 浏览器 Host 可安全 import 这些常量（本模块无 `node:*` 依赖）。带版本后缀的完整
+ * 工具名（如 `nuwax_render_openui_v0_3_9`）由 Node 侧 `tool-names.ts` 在基名上追加
+ * `OPENUI_MCP_VERSION_SUFFIX` 生成——基名是唯一事实来源。Host 识别工具时一律引用此处，
+ * 避免散落字面量随版本漂移。
+ */
+export const OPENUI_RENDER_TOOL_BASE_NAME = 'nuwax_render_openui' as const;
+export const OPENUI_REFERENCE_TOOL_BASE_NAME =
+  'nuwax_get_openui_reference' as const;
+export const OPENUI_UPDATE_GUIDE_TOOL_BASE_NAME =
+  'nuwax_get_openui_update_guide' as const;
+/**
+ * @deprecated 0.3.5 起不再注册为 MCP 工具（易导致 Agent 停在 dry-run / 幻觉已渲染）。
+ * 基名保留供旧文档与迁移对照。
+ */
+export const OPENUI_VALIDATE_TOOL_BASE_NAME = 'nuwax_validate_openui' as const;
+
 export const OPENUI_AUTHORING_PROMPT_NAME = 'nuwax_openui_authoring' as const;
 export const OPENUI_SCHEMA_RESOURCE_URI = 'nuwax://openui/schema/v0.5' as const;
 export const OPENUI_GUIDE_RESOURCE_URI =
