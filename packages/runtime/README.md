@@ -42,3 +42,38 @@ single JSSDK copy, kept in the nuwax repo — **not** shipped by this package) a
 small bootstrap relay that forwards those messages to `<web-view>` `@message` via
 `uni.webView.postMessage`. This package stays free of any uni-webview coupling. The
 compact theme is shared from `@nuwax-ai/openui-mcp/compact-theme`.
+
+## Truncation fallback (`artifactUrl`)
+
+Some agent backends truncate long tool/command output before it reaches the host.
+codex, for example, hard-truncates bash / MCP-as-command output at ~10 KiB / 256
+lines and inserts the literal `...[truncated]...`. When the host then forwards
+that truncated `document.source` to the runtime over `OPENUI_LOAD`, the rendered
+UI is incomplete — while the durable artifact the MCP server wrote to disk
+(`data/{artifactId}.openui.json`) is always complete.
+
+To recover, the host may send an optional `artifactUrl` field on `OPENUI_LOAD`,
+a fetchable URL pointing at that on-disk artifact:
+
+```ts
+{
+  type: 'OPENUI_LOAD',
+  protocolVersion: 'nuwax.openui-runtime/v1',
+  nonce,
+  artifact,        // may carry a truncated source
+  artifactUrl,     // optional: fetchable URL to the full on-disk artifact
+  // …locale, theme, viewport
+}
+```
+
+The runtime consults `artifactUrl` **only** when the incoming `artifact` tests
+positive for the `...[truncated]...` marker; it then `fetch`es the on-disk
+artifact and renders that instead. Otherwise behaviour is unchanged:
+
+- No `artifactUrl`, or source not truncated → renders the pushed `artifact` as before (zero overhead, no fetch).
+- Truncated but the `fetch` fails — e.g. the URL isn't reachable inside an App `<web-view>` — → falls back to the pushed `artifact` and emits `OPENUI_ERROR`; never worse than today.
+
+The same runtime bundle serves PC web, H5, and App/小程序 webview, so the
+fallback is active on every surface. Making `artifactUrl` reachable inside a
+mobile webview is the host's responsibility; the runtime degrades gracefully
+when it is not.
