@@ -22,9 +22,6 @@ interface LoadMessage {
   protocolVersion: 'nuwax.openui-runtime/v1';
   nonce: string;
   artifact: RuntimeArtifact;
-  // Host 提供的可 fetch URL（指向 data/{artifactId}.openui.json）。仅当推过来的 artifact
-  // 被后端（如 codex）硬截断时，runtime 才用它取完整落盘 json 兜底。可选、向后兼容。
-  artifactUrl?: string;
   locale?: string;
   theme?: 'light' | 'dark';
   viewport?: 'desktop' | 'mobile';
@@ -39,17 +36,6 @@ interface ActionResultMessage {
 }
 
 const protocolVersion = 'nuwax.openui-runtime/v1' as const;
-
-// codex 等后端对工具/命令输出在 ~10KiB/256 行处硬截断，插入此标记。检测到它即说明
-// Host 推过来的 source 已残缺，应改用落盘的完整 data/{id}.openui.json 渲染。
-const TRUNCATED_MARKER = '...[truncated]...';
-
-function isOpenUiTruncated(artifact: RuntimeArtifact): boolean {
-  return (
-    artifact.document?.source?.includes(TRUNCATED_MARKER) === true ||
-    artifact.fallback?.markdown?.includes(TRUNCATED_MARKER) === true
-  );
-}
 
 function postToHost(message: Record<string, unknown>): void {
   const payload = { protocolVersion, ...message };
@@ -74,7 +60,7 @@ export function RuntimeApp() {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const handleMessage = async (
+    const handleMessage = (
       message: MessageEvent<LoadMessage | ActionResultMessage>,
     ) => {
       if (message.source !== window.parent || message.data?.nonce !== nonce)
@@ -88,28 +74,8 @@ export function RuntimeApp() {
         const nextViewport = message.data.viewport || 'desktop';
         document.documentElement.dataset.viewport = nextViewport;
         setViewport(nextViewport);
-        const incoming = message.data.artifact;
-        const fallbackUrl = message.data.artifactUrl;
-        // 截断兜底：source 含 ...[truncated]... 且 Host 提供了可 fetch 的落盘 json URL 时，
-        // 直接取完整 data/{id}.openui.json 渲染；任何失败都回退到原 artifact（不破坏现状）。
-        if (fallbackUrl && isOpenUiTruncated(incoming)) {
-          try {
-            const response = await fetch(fallbackUrl);
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            const file = (await response.json()) as RuntimeArtifact;
-            setError(null);
-            setArtifact(file);
-            return;
-          } catch (error) {
-            postToHost({
-              type: 'OPENUI_ERROR',
-              nonce,
-              message: `OpenUI truncation fallback failed: ${error instanceof Error ? error.message : String(error)}`,
-            });
-          }
-        }
         setError(null);
-        setArtifact(incoming);
+        setArtifact(message.data.artifact);
         return;
       }
       if (message.data.type === 'OPENUI_ACTION_RESULT') {
