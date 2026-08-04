@@ -68,7 +68,9 @@ describe('createFormFieldSyncLibrary', () => {
     expect(synced.components.Input.component).toBe(
       base.components.Input.component,
     );
-    expect(synced.components.Form.component).toBe(base.components.Form.component);
+    expect(synced.components.Form.component).toBe(
+      base.components.Form.component,
+    );
     expect(synced.root).toBe('Form');
     expect(synced.componentGroups).toBe(base.componentGroups);
   });
