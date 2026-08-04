@@ -2,6 +2,7 @@ import { Renderer, type ActionEvent } from '@openuidev/react-lang';
 import { ThemeProvider } from '@openuidev/react-ui';
 import { openuiLibrary } from '@openuidev/react-ui/genui-lib';
 import { compactOpenUiTheme } from '../../server/src/compactTheme';
+import { createFormFieldSyncLibrary } from '../../server/src/formFieldSync';
 import {
   createMobileAwareLibrary,
   MobileLayoutProvider,
@@ -55,8 +56,11 @@ export function RuntimeApp() {
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [viewport, setViewport] = useState<'desktop' | 'mobile'>('desktop');
   const stateRef = useRef<Record<string, unknown>>({});
-  // 始终用"移动端感知"库：组件自行按 LayoutContext 决定是否横排→竖排，桌面端零变化。
-  const library = useMemo(() => createMobileAwareLibrary(openuiLibrary), []);
+  // 先同步 Radio/Slider 默认值到 store（修必填误报），再套移动端感知库（横排→竖排）。
+  const library = useMemo(
+    () => createMobileAwareLibrary(createFormFieldSyncLibrary(openuiLibrary)),
+    [],
+  );
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {

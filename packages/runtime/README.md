@@ -41,4 +41,7 @@ parent receives the postMessage directly; in a top-level webview (App / 小程�
 single JSSDK copy, kept in the nuwax repo — **not** shipped by this package) and runs a
 small bootstrap relay that forwards those messages to `<web-view>` `@message` via
 `uni.webView.postMessage`. This package stays free of any uni-webview coupling. The
-compact theme is shared from `@nuwax-ai/openui-mcp/compact-theme`.
+compact theme is shared from `@nuwax-ai/openui-mcp/compact-theme`. Form default-value
+sync (`@nuwax-ai/openui-mcp/form-field-sync`) is applied in `RuntimeApp` before the
+mobile-aware library so RadioGroup / Slider required validation matches the UI
+selected state.

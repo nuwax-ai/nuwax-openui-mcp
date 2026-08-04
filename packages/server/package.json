@@ -1,6 +1,6 @@
 {
   "name": "@nuwax-ai/openui-mcp",
-  "version": "0.3.10",
+  "version": "0.3.11",
   "description": "Durable file-based OpenUI artifacts over MCP for Nuwax.",
   "type": "module",
   "license": "Apache-2.0",
@@ -35,6 +35,10 @@
     "./mobile-layout": {
       "types": "./dist/server/mobileLayout.d.ts",
       "import": "./dist/server/mobileLayout.js"
+    },
+    "./form-field-sync": {
+      "types": "./dist/server/formFieldSync.d.ts",
+      "import": "./dist/server/formFieldSync.js"
     }
   },
   "bin": {

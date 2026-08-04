@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.3.11
+
+- **Form field default sync (`/form-field-sync`).** New subpath export
+  `@nuwax-ai/openui-mcp/form-field-sync` with `createFormFieldSyncLibrary(base)`.
+  Overrides `RadioGroup` / `Slider` so UI-selected defaults are written into the
+  form store and `registerField` getters fall back to the same default — fixes
+  required validation showing「请填写此字段」while a radio/slider already looks
+  selected. Wired into `@nuwax-ai/openui-runtime` `RuntimeApp` before the
+  mobile-aware library.
+
 ## 0.3.9
 
 - **Mobile-aware rendering (`/mobile-layout`).** New subpath export
