@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.3.12
+
+- **Stable MCP tool names by default (opt-in version suffix).** Registered tools
+  are again the base names (`nuwax_render_openui`, `nuwax_get_openui_reference`,
+  `nuwax_get_openui_update_guide`) so client tool lists no longer rename on every
+  release. To restore the 0.3.6–0.3.11 fingerprint style
+  (`nuwax_render_openui_v0_3_12`), set env `NUWAX_OPENUI_TOOL_VERSION_SUFFIX` to
+  `1` / `true` / `yes` / `on` before starting the server. Version is still
+  exposed via `serverInfo.version`, CLI `--version`, and artifact `mcpVersion`.
+  See `packages/server/README.md` → Environment.
+
 ## 0.3.11
 
 - **Form field default sync (`/form-field-sync`).** New subpath export

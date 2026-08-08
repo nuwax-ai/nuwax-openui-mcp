@@ -2,7 +2,8 @@ import { z } from 'zod';
 
 /**
  * 本模块可被浏览器 Host 安全 import（无 `node:*`）。
- * 带版本后缀的 MCP 工具名见 `tool-names.ts`（仅 Node / MCP server）。
+ * 实际注册的 MCP 工具名（默认=基名；可选版本后缀）见 `tool-names.ts`
+ *（仅 Node / MCP server）。
  */
 
 /** render 入参 / legacy in-memory artifact：`nuwax.openui/v1` */
@@ -67,12 +68,13 @@ export function isOpenUiPayloadType(type: unknown): boolean {
 }
 
 /**
- * OpenUI MCP 工具基名（不含版本后缀）。
+ * OpenUI MCP 工具基名（稳定标识，不含版本后缀）。
  *
- * 浏览器 Host 可安全 import 这些常量（本模块无 `node:*` 依赖）。带版本后缀的完整
- * 工具名（如 `nuwax_render_openui_v0_3_9`）由 Node 侧 `tool-names.ts` 在基名上追加
- * `OPENUI_MCP_VERSION_SUFFIX` 生成——基名是唯一事实来源。Host 识别工具时一律引用此处，
- * 避免散落字面量随版本漂移。
+ * 浏览器 Host 可安全 import 这些常量（本模块无 `node:*` 依赖）。Node 侧
+ * `tool-names.ts` 默认直接使用基名注册；仅当 env
+ * `NUWAX_OPENUI_TOOL_VERSION_SUFFIX` 开启时才追加 `OPENUI_MCP_VERSION_SUFFIX`
+ *（如 `nuwax_render_openui_v0_3_12`）。基名是唯一事实来源——Host 识别工具时
+ * 一律引用此处（按 token 包含匹配即可兼容带/不带后缀），避免散落字面量。
  */
 export const OPENUI_RENDER_TOOL_BASE_NAME = 'nuwax_render_openui' as const;
 export const OPENUI_REFERENCE_TOOL_BASE_NAME =

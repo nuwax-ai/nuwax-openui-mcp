@@ -1,6 +1,6 @@
 /**
- * MCP 工具名（带版本后缀）。依赖 `version.ts`（读 package.json），仅供
- * Node 侧 MCP server / CLI 使用。浏览器 Host 请只 import `/contracts`，
+ * MCP 工具名（可按需带版本后缀）。依赖 `version.ts`（读 package.json / env），
+ * 仅供 Node 侧 MCP server / CLI 使用。浏览器 Host 请只 import `/contracts`，
  * 不要经本模块间接拉入 `node:fs`。
  */
 import {
@@ -12,9 +12,13 @@ import {
 import { OPENUI_MCP_VERSION_SUFFIX } from './version.js';
 
 /**
- * 工具名在基名后追加版本后缀（如 `nuwax_render_openui_v0_3_8`），让 MCP 客户端
- * 直接看到版本指纹；后缀取自 package.json，版本永远联动。资源 / prompt 名称不带后缀。
- * 所有基名来自浏览器安全的 `contracts.ts`，作为唯一事实来源。
+ * 注册用工具名 = 基名 + 可选版本后缀。
+ *
+ * - 默认（`NUWAX_OPENUI_TOOL_VERSION_SUFFIX` 关闭）：等于基名，例如
+ *   `nuwax_render_openui`，客户端工具列表稳定、不随发版改名。
+ * - 开启后缀时：如 `nuwax_render_openui_v0_3_12`，在工具列表直接露出版本指纹。
+ *
+ * 资源 / prompt 名称不带后缀。所有基名来自浏览器安全的 `contracts.ts`。
  */
 export const OPENUI_TOOL_NAME = `${OPENUI_RENDER_TOOL_BASE_NAME}${OPENUI_MCP_VERSION_SUFFIX}`;
 

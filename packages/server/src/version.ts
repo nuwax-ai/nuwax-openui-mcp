@@ -45,9 +45,55 @@ export function resolveOpenUiMcpVersion(
 export const OPENUI_MCP_VERSION = resolveOpenUiMcpVersion();
 
 /**
- * MCP 工具名版本后缀。
- * MCP 工具名规范为 `^[a-zA-Z0-9_-]{1,64}$`，禁用点号，故把版本号里的 `.`
- * 换成 `_` 并加 `v` 前缀（例如 `0.3.6` → `_v0_3_6`）。工具名据此拼接，
- * 让版本"指纹"在 MCP 客户端直接可见，且永远与 package.json 联动。
+ * 是否在 MCP 工具名后追加版本后缀的环境变量名。
+ *
+ * - 默认关闭（未设置 / 空 / 非真值）→ 工具名为稳定基名，如 `nuwax_render_openui`
+ * - 设为 `1` / `true` / `yes` / `on`（大小写不敏感）→ 追加 `_v0_3_x`
+ *
+ * 版本指纹在关闭时仍可通过 `serverInfo.version`、CLI `--version`、
+ * artifact `mcpVersion` 获取；本开关只影响工具列表里的展示名。
  */
-export const OPENUI_MCP_VERSION_SUFFIX = `_v${OPENUI_MCP_VERSION.replace(/\./g, '_')}`;
+export const OPENUI_TOOL_VERSION_SUFFIX_ENV =
+  'NUWAX_OPENUI_TOOL_VERSION_SUFFIX' as const;
+
+/** 视为「开启」的 env 取值（比较前会 trim + toLowerCase）。 */
+const TOOL_VERSION_SUFFIX_TRUTHY = new Set(['1', 'true', 'yes', 'on']);
+
+/**
+ * 读取 env，判断是否启用工具名版本后缀。
+ * 可注入 `env` 便于单测；生产路径默认读 `process.env`。
+ */
+export function isOpenUiToolVersionSuffixEnabled(
+  env: NodeJS.ProcessEnv = process.env,
+): boolean {
+  const raw = env[OPENUI_TOOL_VERSION_SUFFIX_ENV];
+  if (typeof raw !== 'string') {
+    return false;
+  }
+  return TOOL_VERSION_SUFFIX_TRUTHY.has(raw.trim().toLowerCase());
+}
+
+/**
+ * 解析 MCP 工具名应拼接的版本后缀。
+ *
+ * - 开关关闭：返回 `''`（工具名 = 基名）
+ * - 开关开启：返回 `_v` + 版本号（`.` → `_`），例如 `0.3.12` → `_v0_3_12`
+ *
+ * MCP 工具名规范为 `^[a-zA-Z0-9_-]{1,64}$`，禁用点号，故必须做替换。
+ */
+export function resolveOpenUiMcpVersionSuffix(
+  version: string = OPENUI_MCP_VERSION,
+  env: NodeJS.ProcessEnv = process.env,
+): string {
+  if (!isOpenUiToolVersionSuffixEnabled(env)) {
+    return '';
+  }
+  return `_v${version.replace(/\./g, '_')}`;
+}
+
+/**
+ * 进程启动时解析一次的工具名版本后缀。
+ * 默认空字符串；仅当 `NUWAX_OPENUI_TOOL_VERSION_SUFFIX` 为真值时非空。
+ * Host / MCP 配置须在进程启动前注入该 env（stdio 入口会在拉起 MCP 前加载 dotenv）。
+ */
+export const OPENUI_MCP_VERSION_SUFFIX = resolveOpenUiMcpVersionSuffix();

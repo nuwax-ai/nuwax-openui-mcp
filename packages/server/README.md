@@ -29,7 +29,7 @@ project directory:
   "mcpServers": {
     "nuwax-openui": {
       "command": "npx",
-      "args": ["-y", "@nuwax-ai/openui-mcp@0.3.5"]
+      "args": ["-y", "@nuwax-ai/openui-mcp@0.3.12"]
     }
   }
 }
@@ -38,6 +38,29 @@ project directory:
 Do not configure it as a persistent/global MCP. If the host cannot provide the
 project as the process working directory or an MCP Root, set
 `NUWAX_OPENUI_PROJECT_ROOT` explicitly.
+
+### Environment
+
+| Variable                           | Default | Effect                                                                                                                                                                                                                                                                                                        |
+| ---------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `NUWAX_OPENUI_PROJECT_ROOT`        | unset   | Absolute project root when the host cannot expose MCP Roots / cwd.                                                                                                                                                                                                                                            |
+| `NUWAX_OPENUI_TOOL_VERSION_SUFFIX` | **off** | When `1` / `true` / `yes` / `on`, MCP tool names get a version fingerprint suffix (e.g. `nuwax_render_openui_v0_3_12`). When off (default), tools keep stable base names (`nuwax_render_openui`, …). Package version is still available via `serverInfo.version`, CLI `--version`, and artifact `mcpVersion`. |
+
+Re-enable version-suffixed tool names (opt-in):
+
+```json
+{
+  "mcpServers": {
+    "nuwax-openui": {
+      "command": "npx",
+      "args": ["-y", "@nuwax-ai/openui-mcp@0.3.12"],
+      "env": {
+        "NUWAX_OPENUI_TOOL_VERSION_SUFFIX": "1"
+      }
+    }
+  }
+}
+```
 
 ### Check installed version
 
