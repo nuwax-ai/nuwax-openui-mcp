@@ -85,6 +85,10 @@ describe('getOpenUiReference', () => {
       expect(reference).toContain('root = Stack([header, body], "l")');
       // 明确否定具名参数写法
       expect(reference).toMatch(/key: value|key=value|named\/keyword/);
+      // 诚实标注：同类型/无类型位置参数的换位无法自动检测
+      expect(reference).toContain(
+        'CANNOT detect swaps between same-typed or untyped positional args',
+      );
     }
   });
 });

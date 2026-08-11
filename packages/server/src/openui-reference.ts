@@ -146,7 +146,8 @@ const POSITIONAL_ARGS_GUARDRAILS = `## Nuwax Positional Arguments (CRITICAL)
   - ❌ \`root = Stack([header, body], "l")\` — \`"l"\` lands in the direction slot (invalid direction → collapsed layout).
   - ✅ \`root = Stack([header, body], "column", "l")\` — direction first, then gap.
 - Same rule for every multi-arg component (Card, charts, Col, Steps, Tabs, …): look up the exact signature via ${OPENUI_REFERENCE_TOOL_NAME} or the schema and fill positions in order. Validation rejects enum values written in the wrong slot and names the slot you most likely meant — read the error, fix the order, then retry ${OPENUI_TOOL_NAME}.
-- OpenUI Lang 采用纯位置参数，没有具名参数（\`gap: "l"\`、\`direction="column"\` 等 key:value 写法均无效）。每个组件的位置签名固定，值的含义只取决于它所在的位置；漏填一位，后面的值全部错位、布局塌陷。以 Stack 为例：\`Stack(children, direction, gap, align, justify, wrap)\`，第二位 direction 只能是 "row"/"column"，把间距值 "l" 写在这里是最常见错误；正确写法是先 direction 再 gap：\`Stack([...], "column", "l")\`。其它多参数组件同理，按签名顺序逐位填写。
+- Auto-detection scope: validation catches enum values written in the wrong slot (direction/gap/variant/Col.type, …) but CANNOT detect swaps between same-typed or untyped positional args — e.g. BarChart \`xLabel\`/\`yLabel\` (both string), \`labels\`/\`series\` (both array), or Col \`label\` vs \`data\` (data is untyped). For those, verify each value is in its exact position against the signature before rendering.
+- OpenUI Lang 采用纯位置参数，没有具名参数（\`gap: "l"\`、\`direction="column"\` 等 key:value 写法均无效）。每个组件的位置签名固定，值的含义只取决于它所在的位置；漏填一位，后面的值全部错位、布局塌陷。以 Stack 为例：\`Stack(children, direction, gap, align, justify, wrap)\`，第二位 direction 只能是 "row"/"column"，把间距值 "l" 写在这里是最常见错误；正确写法是先 direction 再 gap：\`Stack([...], "column", "l")\`。其它多参数组件同理，按签名顺序逐位填写。校验能拦「枚举值写错槽」，但同类型 / 无类型位置参数的换位（如 BarChart 的 xLabel/yLabel、labels/series，Col 的 label 与 data）无法自动识别，渲染前请按签名逐位核对。
 `;
 
 const INTENT_FOCUS: Record<OpenUiUpdateGuideInput['intent'], string> = {
