@@ -1187,7 +1187,8 @@
         "name"
       ],
       "additionalProperties": false,
-      "id": "Input"
+      "id": "Input",
+      "description": "Input component. Enum props: type=text|email|password|number|url. Other props: name, placeholder, rules, value."
     },
     "TextArea": {
       "type": "object",
@@ -1242,7 +1243,8 @@
         "name"
       ],
       "additionalProperties": false,
-      "id": "TextArea"
+      "id": "TextArea",
+      "description": "TextArea component. Other props: name, placeholder, rows, rules, value."
     },
     "Select": {
       "type": "object",
@@ -1309,7 +1311,8 @@
         "items"
       ],
       "additionalProperties": false,
-      "id": "Select"
+      "id": "Select",
+      "description": "Select component. Enum props: size=small|medium|large. Other props: name, items, placeholder, rules, value."
     },
     "SelectItem": {
       "type": "object",
@@ -1381,7 +1384,8 @@
         "name"
       ],
       "additionalProperties": false,
-      "id": "DatePicker"
+      "id": "DatePicker",
+      "description": "DatePicker component. Enum props: mode=single|range. Other props: name, rules, value."
     },
     "Slider": {
       "type": "object",
@@ -1524,7 +1528,8 @@
         "items"
       ],
       "additionalProperties": false,
-      "id": "CheckBoxGroup"
+      "id": "CheckBoxGroup",
+      "description": "CheckBoxGroup component. Other props: name, items, rules, value."
     },
     "CheckBoxItem": {
       "type": "object",
@@ -1548,7 +1553,8 @@
         "name"
       ],
       "additionalProperties": false,
-      "id": "CheckBoxItem"
+      "id": "CheckBoxItem",
+      "description": "CheckBoxItem component. Other props: label, description, name, defaultChecked."
     },
     "RadioGroup": {
       "type": "object",
@@ -1607,7 +1613,8 @@
         "items"
       ],
       "additionalProperties": false,
-      "id": "RadioGroup"
+      "id": "RadioGroup",
+      "description": "RadioGroup component. Other props: name, items, defaultValue, rules, value."
     },
     "RadioItem": {
       "type": "object",
@@ -1628,7 +1635,8 @@
         "value"
       ],
       "additionalProperties": false,
-      "id": "RadioItem"
+      "id": "RadioItem",
+      "description": "RadioItem component. Other props: label, description, value."
     },
     "Steps": {
       "type": "object",

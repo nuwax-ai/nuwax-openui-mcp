@@ -16,13 +16,17 @@ import { fileURLToPath } from 'node:url';
 
 import { openuiLibrary } from '@openuidev/react-ui/genui-lib';
 
+import { applyDescriptionOverlay } from './openui-schema-overlay.mjs';
+
 const here = dirname(fileURLToPath(import.meta.url));
 const outDir = join(here, '..', 'src', 'generated');
 
 // 注意：这里写的是 *未归一化* 的原始 prompt。`getOpenUiReference()` 在运行时仍会
 // 调用 `normalizeGeneratedReference()` 做同样的替换，保持与历史行为完全一致。
 const reference = openuiLibrary.prompt({});
-const schema = JSON.stringify(openuiLibrary.toJSONSchema(), null, 2);
+// schema 先经 overlay 补齐缺失的组件 description（枚举合法值优先），再落盘。
+const schemaObj = applyDescriptionOverlay(openuiLibrary.toJSONSchema());
+const schema = JSON.stringify(schemaObj, null, 2);
 
 mkdirSync(outDir, { recursive: true });
 writeFileSync(join(outDir, 'openui-reference.txt'), reference, 'utf8');
