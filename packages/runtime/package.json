@@ -1,6 +1,6 @@
 {
   "name": "@nuwax-ai/openui-runtime",
-  "version": "0.3.11",
+  "version": "0.3.12",
   "description": "Frozen OpenUI renderer runtime bundle for Nuwax (sidecar / file preview).",
   "type": "module",
   "license": "Apache-2.0",
