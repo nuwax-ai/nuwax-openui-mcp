@@ -88,3 +88,17 @@ html[data-viewport='mobile'] .openui-runtime {
 .openui-stacked-legend {
   min-width: 100%;
 }
+
+/*
+ * 补丁：@openuidev/react-ui@0.13.2 把 .openui-card-card 掏空为仅 {box-shadow:none}，
+ * 丢失 padding/border-radius/border-color/background，导致 Card variant="card" 无可见边框
+ * （基类 .openui-card 的 border 是透明的，靠 variant 补 border-color）。
+ * 0.12.1 含完整声明；此处补回。sidecar.css 在 index.css 之后加载，直接生效。
+ * 全量比对确认 0.13.2 仅此一条规则异常，其余 variant(-sunk/-clear) 均完整。
+ */
+.openui-card-card {
+  padding: var(--openui-space-l);
+  border-radius: var(--openui-radius-3xl);
+  border-color: var(--openui-border-default);
+  background-color: var(--openui-foreground);
+}
