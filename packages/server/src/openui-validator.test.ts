@@ -66,4 +66,73 @@ describe('validateOpenUiDocument', () => {
       ),
     ).toThrow(/Orphaned statements: usersData[\s\S]*Wire them into Col/);
   });
+
+  it('rejects a gap value written in the Stack direction slot', () => {
+    expect(() =>
+      validateOpenUiDocument(
+        ['root = Stack([a], "l")', 'a = TextContent("x")'].join('\n'),
+      ),
+    ).toThrow(/gap was written in the direction slot/);
+  });
+
+  it('rejects an arbitrary invalid Stack direction', () => {
+    expect(() =>
+      validateOpenUiDocument(
+        ['root = Stack([a], "vertical")', 'a = TextContent("x")'].join('\n'),
+      ),
+    ).toThrow('Stack.direction must be one of "row", "column"');
+  });
+
+  it('accepts explicit row/column directions and an omitted direction', () => {
+    for (const direction of ['"row"', '"column"', '']) {
+      const source = [
+        `root = Stack([a]${direction ? `, ${direction}` : ''})`,
+        'a = TextContent("x")',
+      ].join('\n');
+      expect(() => validateOpenUiDocument(source)).not.toThrow();
+    }
+  });
+
+  it('rejects an invalid enum value on any component, not only Stack', () => {
+    // PieChart.variant is "pie"|"donut"; "grouped" is a BarChart value, not a
+    // sibling here, so the error is the plain "must be one of" form.
+    expect(() =>
+      validateOpenUiDocument(
+        [
+          'root = Stack([chart])',
+          'chart = PieChart(labels, values, "grouped")',
+          'labels = ["a", "b"]',
+          'values = [1, 2]',
+        ].join('\n'),
+      ),
+    ).toThrow('PieChart.variant must be one of "pie", "donut"');
+  });
+
+  it('hints at a sibling-slot swap for non-Stack components', () => {
+    // Card's 2nd positional is `variant`; a gap token there is invalid for
+    // variant but is a valid Card.gap value, so the hint points at the gap sibling.
+    expect(() =>
+      validateOpenUiDocument(
+        [
+          'root = Stack([card])',
+          'card = Card([body], "m")',
+          'body = TextContent("x")',
+        ].join('\n'),
+      ),
+    ).toThrow(/gap was written in the variant slot/);
+  });
+
+  it('walks into nested elements under non-children props without false errors', () => {
+    // Table nests Col under `columns`; the walker must reach it and not choke.
+    expect(() =>
+      validateOpenUiDocument(
+        [
+          'root = Stack([table])',
+          'table = Table([nameCol])',
+          'nameCol = Col("名称", data)',
+          'data = [{name: "张三"}]',
+        ].join('\n'),
+      ),
+    ).not.toThrow();
+  });
 });

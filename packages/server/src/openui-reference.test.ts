@@ -70,6 +70,23 @@ describe('getOpenUiReference', () => {
       "reuse the same $days binding in each TabItem's chart/table args so one filter drives all tabs.",
     );
   });
+
+  it('documents positional-only arguments and the Stack direction/gap footgun', () => {
+    for (const profile of ['basic', 'dashboard', 'form', 'all'] as const) {
+      const reference = getOpenUiReference(profile);
+      expect(reference).toContain('ONLY positional arguments');
+      expect(reference).toContain(
+        'Stack(children, direction, gap, align, justify, wrap)',
+      );
+      // 正确写法与反面示例都要出现，便于模型对照
+      expect(reference).toContain(
+        'root = Stack([header, body], "column", "l")',
+      );
+      expect(reference).toContain('root = Stack([header, body], "l")');
+      // 明确否定具名参数写法
+      expect(reference).toMatch(/key: value|key=value|named\/keyword/);
+    }
+  });
 });
 
 describe('getOpenUiUpdateGuide', () => {
