@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.3.13
+
+- **Validate enum positional arguments (root-cause fix for silent broken layouts).**
+  `nuwax_render_openui` now rejects enum values written in the wrong positional slot
+  instead of silently rendering a collapsed layout. The validator builds an enum index
+  from the generated schema (every component, every enum prop — `Stack.direction`/`gap`,
+  `Card.variant`, `PieChart.variant`, `Col.type`, …), walks the full element tree
+  including nested `Table.columns` / `BarChart.series` (not just `children`), and when a
+  value is invalid but is a valid sibling prop's value, points at the slot it was likely
+  meant for — e.g. `Stack.direction must be one of "row", "column" but got "l" — "l" is a
+valid Stack.gap value. It looks like the gap was written in the direction slot`. This
+  fixes the `Stack([...], "l")` class where a gap token lands in the direction slot and
+  breaks the layout with no error. Reactive bindings (`$var`, `@Filter`, ternaries) are
+  skipped to avoid false positives. Note: same-typed / untyped positional swaps (e.g.
+  `BarChart` `xLabel`/`yLabel`, `Col` `label`/`data`) cannot be auto-detected.
+- **Authoring reference: positional-arguments guardrail.** `nuwax_get_openui_reference`
+  (all profiles) now states explicitly that OpenUI Lang uses positional-only arguments
+  (no `key: value` / named syntax), with a Stack direction/gap positive/negative example,
+  and documents the validator's detection limit above.
+- **Schema description overlay.** The generator fills missing component `description`
+  for `Input` / `TextArea` / `Select` / `DatePicker` / `CheckBoxGroup` / `CheckBoxItem` /
+  `RadioGroup` / `RadioItem`, listing enum props and allowed values first, so
+  `format=schema` output is self-documenting. Additive and idempotent.
+
 ## 0.3.12
 
 - **Stable MCP tool names by default (opt-in version suffix).** Registered tools
