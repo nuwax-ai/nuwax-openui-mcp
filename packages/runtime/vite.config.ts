@@ -11,7 +11,7 @@ export default defineConfig({
     emptyOutDir: true,
     sourcemap: false,
     lib: {
-      entry: 'web/main.tsx',
+      entry: 'src/main.tsx',
       formats: ['es'],
       fileName: () => 'runtime.js',
     },
